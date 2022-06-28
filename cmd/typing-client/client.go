@@ -64,20 +64,24 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
-	var container = lg.NewStyle().
-		Width(physicalWidth).
-		Height(physicalHeight).
-		Align(lg.Center)
 
 	// The header
 	var header = lg.NewStyle().
+		Height(3).
 		Bold(true).
 		Italic(true).
 		Foreground(lg.Color("#588157")).
 		BorderStyle(lg.ThickBorder()).
 		BorderForeground(lg.Color("#344e41")).
 		Padding(1, 3)
-		// MarginTop(container.GetHeight())
+
+	var container = lg.NewStyle().
+		Width(physicalWidth).
+		Height(physicalHeight).
+		Align(lg.Center).
+		PaddingTop((physicalHeight - 10) / 2)
+		/* minus 10 because thats the number of lines printed (lines 84, 85, 97, 101)*2
+		there are definitely better ways to do this but trial and error got me here baby */
 
 	s := header.Render("TYPING.SYSTEMS")
 	s += "\n\n"
