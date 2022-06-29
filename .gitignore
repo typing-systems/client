@@ -11,6 +11,7 @@
 !/.gitignore
 
 !*.go
+!*.yml
 !go.sum
 !go.mod
 
