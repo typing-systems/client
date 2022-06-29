@@ -12,6 +12,7 @@ import (
 type model struct {
 	options []string
 	cursor  int
+	chosen  bool
 }
 
 func initModel() model {
@@ -24,7 +25,8 @@ func (m model) Init() tea.Cmd {
 	return nil
 }
 
-func (m model) View() string {
+// This handles the view when a choice has not been made, ie the first screen you see.
+func ChoiceView(m model) string {
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
 
 	var leftHalf = lg.NewStyle().
@@ -59,24 +61,131 @@ func (m model) View() string {
 	return lg.JoinHorizontal(lg.Center, leftHalf.Render(left), rightHalf.Render(right))
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+// This handles the view for when a choice has been made.
+func ViewOthers(m model) string {
+	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
+
+	var leftHalf = lg.NewStyle().
+		Width(physicalWidth / 2).
+		Height(physicalHeight).
+		Background(lg.Color("#344e41")).
+		Align(lg.Center).
+		PaddingTop((physicalHeight - 1) / 2)
+
+	var rightHalf = lg.NewStyle().
+		Width(physicalWidth / 2).
+		Height(physicalHeight).
+		Background(lg.Color("#000000")).
+		Align(lg.Center).
+		PaddingTop((physicalHeight - 4) / 2)
+
+	left := "TYPING.SYSTEMS"
+
+	right := "CHOSEN OTHERS"
+
+	right += "\nPress q to quit."
+
+	return lg.JoinHorizontal(lg.Center, leftHalf.Render(left), rightHalf.Render(right))
+}
+
+// This handles the view for when a choice has been made.
+func ViewYourself(m model) string {
+	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
+
+	var leftHalf = lg.NewStyle().
+		Width(physicalWidth / 2).
+		Height(physicalHeight).
+		Background(lg.Color("#344e41")).
+		Align(lg.Center).
+		PaddingTop((physicalHeight - 1) / 2)
+
+	var rightHalf = lg.NewStyle().
+		Width(physicalWidth / 2).
+		Height(physicalHeight).
+		Background(lg.Color("#000000")).
+		Align(lg.Center).
+		PaddingTop((physicalHeight - 4) / 2)
+
+	left := "TYPING.SYSTEMS"
+
+	right := "CHOSEN YOURSELF"
+
+	right += "\nPress q to quit."
+
+	return lg.JoinHorizontal(lg.Center, leftHalf.Render(left), rightHalf.Render(right))
+}
+
+/* MAIN VIEW METHOD
+ * Just passes off the view to the correlating function,
+ * depending on if a choice has been made or not.
+ */
+func (m model) View() string {
+	if m.chosen {
+		if m.cursor == 0 {
+			return ViewOthers(m)
+		} else if m.cursor == 1 {
+			return ViewYourself(m)
+		}
+	}
+
+	return ChoiceView(m)
+}
+
+func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
+
 		case "up", "k":
 			if m.cursor > 0 {
 				m.cursor--
 			}
-
 		case "down", "j":
 			if m.cursor < len(m.options)-1 {
 				m.cursor++
 			}
+
+		case "enter", " ":
+			m.chosen = true
 		}
 	}
 	return m, nil
+}
+
+func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c", "q":
+			return m, tea.Quit
+		}
+	}
+	return m, nil
+}
+
+func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c", "q":
+			return m, tea.Quit
+		}
+	}
+	return m, nil
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if m.chosen {
+		if m.cursor == 0 {
+			return UpdateOthers(msg, m)
+		} else if m.cursor == 1 {
+			return UpdateYourself(msg, m)
+		}
+	}
+
+	return UpdateChoice(msg, m)
 }
 
 func main() {
