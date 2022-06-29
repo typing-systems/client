@@ -117,10 +117,7 @@ func ViewYourself(m model) string {
 	return lg.JoinHorizontal(lg.Center, leftHalf.Render(left), rightHalf.Render(right))
 }
 
-/* MAIN VIEW METHOD
- * Just passes off the view to the correlating function,
- * depending on if a choice has been made or not.
- */
+// Main view function, just serves to call the relevant views
 func (m model) View() string {
 	if m.chosen {
 		if m.cursor == 0 {
@@ -133,6 +130,7 @@ func (m model) View() string {
 	return ChoiceView(m)
 }
 
+// Update function for when a choice hasn't been made
 func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -156,6 +154,7 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// Update function for when the user has chosen to play others
 func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -170,6 +169,7 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// Update function for when the user has chosen to play themselves
 func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -184,6 +184,7 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// Main update function, just serves to call the relevant update function
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.chosen {
 		if m.cursor == 0 {
