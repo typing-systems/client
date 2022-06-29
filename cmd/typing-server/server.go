@@ -4,10 +4,10 @@ import (
 	"fmt"
 )
 
-func Root() string {
+func root() string {
 	return "This is a demo."
 }
 
 func main() {
-	fmt.Println(Root())
+	fmt.Println(root())
 }
