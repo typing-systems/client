@@ -3,7 +3,7 @@ package main
 import "testing"
 
 func TestServer(t *testing.T) {
-	got := Root()
+	got := root()
 	want := "This is a demo."
 
 	if got != want {
