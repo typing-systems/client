@@ -80,7 +80,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func main() {
-	client := tea.NewProgram(initModel())
+	client := tea.NewProgram(initModel(), tea.WithAltScreen())
 	if err := client.Start(); err != nil {
 		fmt.Println("Error starting client:", err)
 		os.Exit(1)
