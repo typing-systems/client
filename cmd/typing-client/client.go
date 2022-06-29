@@ -83,6 +83,7 @@ func ViewOthers(m model) string {
 
 	right := "CHOSEN OTHERS"
 
+	right += "\n\nPress backspace to go back to the main menu."
 	right += "\nPress q to quit."
 
 	return lg.JoinHorizontal(lg.Center, leftHalf.Render(left), rightHalf.Render(right))
@@ -110,6 +111,7 @@ func ViewYourself(m model) string {
 
 	right := "CHOSEN YOURSELF"
 
+	right += "\n\nPress backspace to go back to the main menu."
 	right += "\nPress q to quit."
 
 	return lg.JoinHorizontal(lg.Center, leftHalf.Render(left), rightHalf.Render(right))
@@ -160,6 +162,9 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
+
+		case "backspace":
+			m.chosen = false
 		}
 	}
 	return m, nil
@@ -171,6 +176,9 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
+
+		case "backspace":
+			m.chosen = false
 		}
 	}
 	return m, nil
