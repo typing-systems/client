@@ -4,6 +4,7 @@ import "testing"
 
 func TestServer(t *testing.T) {
 	got := Root()
+
 	want := "This is a client."
 
 	if got != want {
