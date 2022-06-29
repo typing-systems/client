@@ -9,9 +9,9 @@ permissions:
   contents: read
   pull-requests: read
 jobs:
-  strategy:
-    fail-fast: true
   golangci:
+    strategy:
+      fail-fast: true
     name: lint
     runs-on: ubuntu-latest
     steps:
