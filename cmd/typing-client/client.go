@@ -22,8 +22,8 @@ type model struct {
 
 func initModel() model {
 	randSentence := utility.GetRandomSentence(10)
-
 	input := ti.New()
+
 	input.Focus()
 	input.Prompt = ""
 	input.SetCursorMode(2)
@@ -36,23 +36,9 @@ func initModel() model {
 	}
 }
 
-func (m model) Init() tea.Cmd {
-	return nil
-}
-
-func halfGen(j int, physicalWidth int, physicalHeight int, hex string) lg.Style {
-	var half = lg.NewStyle().
-		Width(physicalWidth / 2).
-		Height(physicalHeight).
-		Background(lg.Color(hex)).
-		Align(lg.Center).
-		PaddingTop((physicalHeight - j) / 2)
-
-	return half
-}
-
 //////// MAIN MENU FUNCTIONS ////////
 // This handles the view when a choice has not been made, ie the first screen you see.
+
 func ViewChoice(m model) string {
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
 
@@ -77,6 +63,7 @@ func ViewChoice(m model) string {
 }
 
 // Update function for when a choice hasn't been made
+
 func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -105,6 +92,7 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 
 //////// OTHERS FUNCTIONS ////////
 // This handles the view for when a choice has been made.
+
 func ViewOthers(m model) string {
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
 
@@ -121,6 +109,7 @@ func ViewOthers(m model) string {
 }
 
 // Update function for when the user has chosen to play others
+
 func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -137,6 +126,7 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 
 //////// YOURSELF FUNCTIONS ////////
 // This handles the view for when a choice has been made.
+
 func ViewYourself(m model) string {
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
 
@@ -167,6 +157,7 @@ func ViewYourself(m model) string {
 }
 
 // Update function for when the user has chosen to play themselves
+
 func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
@@ -200,6 +191,7 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 
 //////// MAIN FUNCTIONS ////////
 // Main view function, just serves to call the relevant views
+
 func (m model) View() string {
 	if m.chosen {
 		if m.cursor == 0 {
@@ -213,6 +205,7 @@ func (m model) View() string {
 }
 
 // Main update function, just serves to call the relevant update function
+
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.chosen {
 		if m.cursor == 0 {
@@ -229,6 +222,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func foregroundColour(hex string) lg.Style {
 	return lg.NewStyle().Foreground(lg.Color(hex))
+}
+
+func halfGen(j int, physicalWidth int, physicalHeight int, hex string) lg.Style {
+	return lg.NewStyle().
+		Width(physicalWidth / 2).
+		Height(physicalHeight).
+		Background(lg.Color(hex)).
+		Align(lg.Center).
+		PaddingTop((physicalHeight - j) / 2)
+}
+
+// Setup Functions
+
+func (m model) Init() tea.Cmd {
+	return nil
 }
 
 func main() {
