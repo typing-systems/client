@@ -2,11 +2,11 @@ package utility
 
 import (
 	"bufio"
+	"crypto/rand"
 	"log"
-	"math/rand"
+	"math/big"
 	"os"
 	"strings"
-	"time"
 
 	lg "github.com/charmbracelet/lipgloss"
 )
@@ -27,14 +27,12 @@ func getRandomWord() string {
 
 	scanner := bufio.NewScanner(file)
 
-	randSource := rand.NewSource(time.Now().UnixNano())
-	randGenerator := rand.New(randSource)
-
 	lineNum := 1
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		roll := randGenerator.Intn(lineNum)
+		roll := getRandomValue(lineNum)
+
 		if roll == 0 {
 			pick = line
 		}
@@ -43,6 +41,15 @@ func getRandomWord() string {
 	}
 
 	return pick
+}
+
+func getRandomValue(line int) int64 {
+	n, err := rand.Int(rand.Reader, big.NewInt(int64(line)))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return n.Int64()
 }
 
 func GetRandomSentence(words int) string {
