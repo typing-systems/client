@@ -57,7 +57,7 @@ func ViewChoice(m model) string {
 		right += (fmt.Sprintf("%s [%s]\n", cursor, option))
 	}
 
-	right += "\nPress q to quit."
+	right += "\nPress ctrl+q to quit."
 
 	return lg.JoinHorizontal(lg.Center, leftHalf.Render(left), rightHalf.Render(right))
 }
@@ -68,7 +68,7 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "q":
+		case "ctrl+c", "ctrl+q":
 			return m, tea.Quit
 
 		case "up", "k":
@@ -103,7 +103,7 @@ func ViewOthers(m model) string {
 	right := "CHOSEN OTHERS"
 
 	right += "\n\nPress backspace to go back to the main menu."
-	right += "\nPress q to quit."
+	right += "\nPress ctrl+q to quit."
 
 	return lg.JoinHorizontal(lg.Center, leftHalf.Render(left), rightHalf.Render(right))
 }
@@ -114,7 +114,7 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "q":
+		case "ctrl+c", "ctrl+q":
 			return m, tea.Quit
 
 		case "ctrl+b":
