@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	ti "github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -18,6 +19,7 @@ type model struct {
 	input    ti.Model
 	sentence string
 	index    int
+	wrongMap map[int]bool
 }
 
 func initModel() model {
@@ -33,6 +35,7 @@ func initModel() model {
 		options:  []string{"Race others", "Race yourself"},
 		input:    input,
 		sentence: randSentence,
+		wrongMap: make(map[int]bool),
 	}
 }
 
@@ -139,17 +142,20 @@ func ViewYourself(m model) string {
 	var wrong = utility.ForegroundColour("#A7171A")
 	var primary = utility.ForegroundColour("#525252")
 
-	currInput := m.input.View()
-	sentence := m.sentence
+	sentence := ""
 
-	if m.index > -1 {
-		if currInput[m.index:m.index+1] != m.sentence[m.index:m.index+1] {
-			sentence = m.sentence[:m.index] + wrong.Render(m.sentence[m.index:m.index+1]) + primary.Render(m.sentence[m.index+1:])
+	for i := 0; i < len(m.sentence); i++ {
+		if m.wrongMap[i] == true {
+			if m.sentence[i:i+1] == " " {
+				sentence += strings.Replace(m.sentence[i:i+1], " ", wrong.Render("_"), 1)
+			} else {
+				sentence += wrong.Render(m.sentence[i : i+1])
+			}
+		} else if i <= m.index {
+			sentence += m.sentence[i : i+1]
 		} else {
-			sentence = m.sentence[:m.index] + m.sentence[m.index:m.index+1] + primary.Render(m.sentence[m.index+1:])
+			sentence += primary.Render(m.sentence[i : i+1])
 		}
-	} else {
-		sentence = primary.Render(sentence)
 	}
 
 	return container.Render(lg.JoinVertical(lg.Left, sentence))
@@ -171,6 +177,9 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 
 		case "backspace":
 			if m.index != -1 {
+				if m.wrongMap[m.index] {
+					m.wrongMap[m.index] = false
+				}
 				m.index--
 			}
 			var cmd tea.Cmd
@@ -183,6 +192,14 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 
 	if m.index != len(m.sentence)-1 {
 		m.index++
+	}
+
+	if m.index > -1 {
+		if m.input.View()[m.index:m.index+1] != m.sentence[m.index:m.index+1] {
+			m.wrongMap[m.index] = true
+		} else {
+			m.wrongMap[m.index] = false
+		}
 	}
 
 	return m, cmd
