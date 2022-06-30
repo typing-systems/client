@@ -42,7 +42,7 @@ func initModel() model {
 func ViewChoice(m model) string {
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
 
-	var leftHalf = halfGen(1, physicalWidth, physicalHeight, "#344e41")
+	var leftHalf = utility.HalfGen(1, physicalWidth, physicalHeight, "#344e41")
 	var rightHalf = leftHalf.Copy().Background(lg.Color("#000000")).PaddingTop((physicalHeight - 4) / 2)
 
 	left := "TYPING.SYSTEMS"
@@ -96,7 +96,7 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 func ViewOthers(m model) string {
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
 
-	var leftHalf = halfGen(1, physicalWidth, physicalHeight, "#344e41")
+	var leftHalf = utility.HalfGen(1, physicalWidth, physicalHeight, "#344e41")
 	var rightHalf = leftHalf.Copy().Background(lg.Color("#000000")).PaddingTop((physicalHeight - 4) / 2)
 
 	left := "TYPING.SYSTEMS"
@@ -136,9 +136,9 @@ func ViewYourself(m model) string {
 		PaddingTop((physicalHeight - lg.Height(m.sentence) - 1) / 2).
 		PaddingLeft((physicalWidth - lg.Width(m.sentence)) / 2)
 
-	var wrong = foregroundColour("#A7171A")
-	var correct = foregroundColour("#50C878")
-	var primary = foregroundColour("#525252")
+	var wrong = utility.ForegroundColour("#A7171A")
+	var correct = utility.ForegroundColour("#50C878")
+	var primary = utility.ForegroundColour("#525252")
 
 	currInput := m.input.View()
 	sentence := m.sentence
@@ -216,21 +216,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return UpdateChoice(msg, m)
-}
-
-// Utility functions
-
-func foregroundColour(hex string) lg.Style {
-	return lg.NewStyle().Foreground(lg.Color(hex))
-}
-
-func halfGen(j int, physicalWidth int, physicalHeight int, hex string) lg.Style {
-	return lg.NewStyle().
-		Width(physicalWidth / 2).
-		Height(physicalHeight).
-		Background(lg.Color(hex)).
-		Align(lg.Center).
-		PaddingTop((physicalHeight - j) / 2)
 }
 
 // Setup Functions
