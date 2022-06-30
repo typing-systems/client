@@ -137,7 +137,6 @@ func ViewYourself(m model) string {
 		PaddingLeft((physicalWidth - lg.Width(m.sentence)) / 2)
 
 	var wrong = utility.ForegroundColour("#A7171A")
-	var correct = utility.ForegroundColour("#50C878")
 	var primary = utility.ForegroundColour("#525252")
 
 	currInput := m.input.View()
@@ -147,7 +146,7 @@ func ViewYourself(m model) string {
 		if currInput[m.index:m.index+1] != m.sentence[m.index:m.index+1] {
 			sentence = m.sentence[:m.index] + wrong.Render(m.sentence[m.index:m.index+1]) + primary.Render(m.sentence[m.index+1:])
 		} else {
-			sentence = m.sentence[:m.index] + correct.Render(m.sentence[m.index:m.index+1]) + primary.Render(m.sentence[m.index+1:])
+			sentence = m.sentence[:m.index] + m.sentence[m.index:m.index+1] + primary.Render(m.sentence[m.index+1:])
 		}
 	} else {
 		sentence = primary.Render(sentence)
