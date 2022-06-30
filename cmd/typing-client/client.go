@@ -145,7 +145,7 @@ func ViewYourself(m model) string {
 	sentence := ""
 
 	for i := 0; i < len(m.sentence); i++ {
-		if m.wrongMap[i] == true {
+		if m.wrongMap[i] {
 			if m.sentence[i:i+1] == " " {
 				sentence += strings.Replace(m.sentence[i:i+1], " ", wrong.Render("_"), 1)
 			} else {
