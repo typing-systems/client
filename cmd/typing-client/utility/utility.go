@@ -37,7 +37,7 @@ func getRandomWord() string {
 			pick = line
 		}
 
-		lineNum += 1
+		lineNum++
 	}
 
 	return pick

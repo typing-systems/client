@@ -119,6 +119,7 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 
 		case "ctrl+b":
 			m.chosen = false
+			m.sentence = utility.GetRandomSentence(10)
 		}
 	}
 	return m, nil
@@ -168,6 +169,7 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 
 		case "ctrl+b":
 			m.chosen = false
+			m.sentence = utility.GetRandomSentence(10)
 
 		case "backspace":
 			if m.index != -1 {
