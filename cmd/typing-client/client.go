@@ -43,7 +43,7 @@ func ViewChoice(m model) string {
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
 
 	var leftHalf = halfGen(1, physicalWidth, physicalHeight, "#344e41")
-	var rightHalf = halfGen(4, physicalWidth, physicalHeight, "#000000")
+	var rightHalf = leftHalf.Copy().Background(lg.Color("#000000")).PaddingTop((physicalHeight - 4) / 2)
 
 	left := "TYPING.SYSTEMS"
 	right := ""
@@ -97,7 +97,7 @@ func ViewOthers(m model) string {
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
 
 	var leftHalf = halfGen(1, physicalWidth, physicalHeight, "#344e41")
-	var rightHalf = halfGen(4, physicalWidth, physicalHeight, "#000000")
+	var rightHalf = leftHalf.Copy().Background(lg.Color("#000000")).PaddingTop((physicalHeight - 4) / 2)
 
 	left := "TYPING.SYSTEMS"
 	right := "CHOSEN OTHERS"
