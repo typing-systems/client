@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/charmbracelet/bubbles/textinput"
+	ti "github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	lg "github.com/charmbracelet/lipgloss"
 	"github.com/typing-systems/typing/cmd/typing-client/utility"
@@ -15,7 +15,7 @@ type model struct {
 	options  []string
 	cursor   int
 	chosen   bool
-	input    textinput.Model
+	input    ti.Model
 	sentence string
 	index    int
 }
@@ -23,7 +23,7 @@ type model struct {
 func initModel() model {
 	randSentence := utility.GetRandomSentence(10)
 
-	input := textinput.New()
+	input := ti.New()
 	input.Focus()
 	input.Prompt = ""
 	input.SetCursorMode(2)
@@ -40,27 +40,26 @@ func (m model) Init() tea.Cmd {
 	return nil
 }
 
+func halfGen(j int, physicalWidth int, physicalHeight int, hex string) lg.Style {
+	var half = lg.NewStyle().
+		Width(physicalWidth / 2).
+		Height(physicalHeight).
+		Background(lg.Color(hex)).
+		Align(lg.Center).
+		PaddingTop((physicalHeight - j) / 2)
+
+	return half
+}
+
 //////// MAIN MENU FUNCTIONS ////////
 // This handles the view when a choice has not been made, ie the first screen you see.
 func ViewChoice(m model) string {
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
 
-	var leftHalf = lg.NewStyle().
-		Width(physicalWidth / 2).
-		Height(physicalHeight).
-		Background(lg.Color("#344e41")).
-		Align(lg.Center).
-		PaddingTop((physicalHeight - 1) / 2)
-
-	var rightHalf = lg.NewStyle().
-		Width(physicalWidth / 2).
-		Height(physicalHeight).
-		Background(lg.Color("#000000")).
-		Align(lg.Center).
-		PaddingTop((physicalHeight - 4) / 2)
+	var leftHalf = halfGen(1, physicalWidth, physicalHeight, "#344e41")
+	var rightHalf = halfGen(4, physicalWidth, physicalHeight, "#000000")
 
 	left := "TYPING.SYSTEMS"
-
 	right := ""
 
 	for i, option := range m.options {
@@ -82,13 +81,14 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "ctrl+q":
+		case "ctrl+c", "q":
 			return m, tea.Quit
 
 		case "up", "k":
 			if m.cursor > 0 {
 				m.cursor--
 			}
+
 		case "down", "j":
 			if m.cursor < len(m.options)-1 {
 				m.cursor++
@@ -99,6 +99,7 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			m.index = -1
 		}
 	}
+
 	return m, nil
 }
 
@@ -107,22 +108,10 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 func ViewOthers(m model) string {
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
 
-	var leftHalf = lg.NewStyle().
-		Width(physicalWidth / 2).
-		Height(physicalHeight).
-		Background(lg.Color("#344e41")).
-		Align(lg.Center).
-		PaddingTop((physicalHeight - 1) / 2)
-
-	var rightHalf = lg.NewStyle().
-		Width(physicalWidth / 2).
-		Height(physicalHeight).
-		Background(lg.Color("#000000")).
-		Align(lg.Center).
-		PaddingTop((physicalHeight - 4) / 2)
+	var leftHalf = halfGen(1, physicalWidth, physicalHeight, "#344e41")
+	var rightHalf = halfGen(4, physicalWidth, physicalHeight, "#000000")
 
 	left := "TYPING.SYSTEMS"
-
 	right := "CHOSEN OTHERS"
 
 	right += "\n\nPress backspace to go back to the main menu."
@@ -136,7 +125,7 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "ctrl+q":
+		case "ctrl+c", "q":
 			return m, tea.Quit
 
 		case "ctrl+b":
@@ -157,26 +146,21 @@ func ViewYourself(m model) string {
 		PaddingTop((physicalHeight - lg.Height(m.sentence) - 1) / 2).
 		PaddingLeft((physicalWidth - lg.Width(m.sentence)) / 2)
 
-	var wrong = lg.NewStyle().
-		Foreground(lg.Color("#A7171A"))
-
-	var correct = lg.NewStyle().
-		Foreground(lg.Color("#50C878"))
-
-	var grey = lg.NewStyle().Foreground(lg.Color("#525252"))
+	var wrong = foregroundColour("#A7171A")
+	var correct = foregroundColour("#50C878")
+	var primary = foregroundColour("#525252")
 
 	currInput := m.input.View()
-
 	sentence := m.sentence
 
 	if m.index > -1 {
 		if currInput[m.index:m.index+1] != m.sentence[m.index:m.index+1] {
-			sentence = m.sentence[:m.index] + wrong.Render(m.sentence[m.index:m.index+1]) + grey.Render(m.sentence[m.index+1:])
+			sentence = m.sentence[:m.index] + wrong.Render(m.sentence[m.index:m.index+1]) + primary.Render(m.sentence[m.index+1:])
 		} else {
-			sentence = m.sentence[:m.index] + correct.Render(m.sentence[m.index:m.index+1]) + grey.Render(m.sentence[m.index+1:])
+			sentence = m.sentence[:m.index] + correct.Render(m.sentence[m.index:m.index+1]) + primary.Render(m.sentence[m.index+1:])
 		}
 	} else {
-		sentence = grey.Render(sentence)
+		sentence = primary.Render(sentence)
 	}
 
 	return container.Render(lg.JoinVertical(lg.Left, sentence))
@@ -184,6 +168,8 @@ func ViewYourself(m model) string {
 
 // Update function for when the user has chosen to play themselves
 func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -202,15 +188,12 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			return m, cmd
 		}
 	}
-	var cmd tea.Cmd
+
 	m.input, cmd = m.input.Update(msg)
+
 	if m.index != len(m.sentence)-1 {
 		m.index++
 	}
-
-	// currInputState := m.input.Value()
-
-	// if currInputState
 
 	return m, cmd
 }
@@ -240,6 +223,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return UpdateChoice(msg, m)
+}
+
+// Utility functions
+
+func foregroundColour(hex string) lg.Style {
+	return lg.NewStyle().Foreground(lg.Color(hex))
 }
 
 func main() {
