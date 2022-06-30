@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -13,22 +12,27 @@ import (
 )
 
 type model struct {
-	options []string
-	cursor  int
-	chosen  bool
-	input   textinput.Model
+	options  []string
+	cursor   int
+	chosen   bool
+	input    textinput.Model
+	sentence string
+	index    int
 }
 
 func initModel() model {
+	randSentence := utility.GetRandomSentence(10)
+
 	input := textinput.New()
 	input.Focus()
 	input.Prompt = ""
 	input.SetCursorMode(2)
-	input.CharLimit = 50
+	input.CharLimit = len(randSentence)
 
 	return model{
-		options: []string{"Race others", "Race yourself"},
-		input:   input,
+		options:  []string{"Race others", "Race yourself"},
+		input:    input,
+		sentence: randSentence,
 	}
 }
 
@@ -92,6 +96,7 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 
 		case "enter", " ":
 			m.chosen = true
+			m.index = -1
 		}
 	}
 	return m, nil
@@ -144,27 +149,37 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 //////// YOURSELF FUNCTIONS ////////
 // This handles the view for when a choice has been made.
 func ViewYourself(m model) string {
-	sentence := utility.GetRandomSentence(10)
-
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
 
 	var container = lg.NewStyle().
 		Width(physicalWidth).
 		Height(physicalHeight).
-		PaddingTop((physicalHeight - lg.Height(sentence) - 1) / 2).
-		PaddingLeft((physicalWidth - lg.Width(sentence)) / 2)
+		PaddingTop((physicalHeight - lg.Height(m.sentence) - 1) / 2).
+		PaddingLeft((physicalWidth - lg.Width(m.sentence)) / 2)
 
 	var wrong = lg.NewStyle().
 		Foreground(lg.Color("#A7171A"))
 
+	var correct = lg.NewStyle().
+		Foreground(lg.Color("#50C878"))
+
+	var grey = lg.NewStyle().Foreground(lg.Color("#525252"))
+
 	currInput := m.input.View()
 
-	if sentence[len(currInput)-1:] != currInput[len(currInput)-1:] {
-		sentence = strings.Replace(sentence, sentence[len(currInput)-1:], wrong.Render(sentence[len(currInput)-1:]), -1)
-		// currInput = strings.Replace(currInput, currInput[len(currInput)-1:], wrong.Render(currInput[len(currInput)-1:]), -1)
+	sentence := m.sentence
+
+	if m.index > -1 {
+		if currInput[m.index:m.index+1] != m.sentence[m.index:m.index+1] {
+			sentence = m.sentence[:m.index] + wrong.Render(m.sentence[m.index:m.index+1]) + grey.Render(m.sentence[m.index+1:])
+		} else {
+			sentence = m.sentence[:m.index] + correct.Render(m.sentence[m.index:m.index+1]) + grey.Render(m.sentence[m.index+1:])
+		}
+	} else {
+		sentence = grey.Render(sentence)
 	}
 
-	return container.Render(lg.JoinVertical(lg.Left, sentence, currInput))
+	return container.Render(lg.JoinVertical(lg.Left, sentence))
 }
 
 // Update function for when the user has chosen to play themselves
@@ -177,10 +192,26 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 
 		case "ctrl+b":
 			m.chosen = false
+
+		case "backspace":
+			if m.index != -1 {
+				m.index--
+			}
+			var cmd tea.Cmd
+			m.input, cmd = m.input.Update(msg)
+			return m, cmd
 		}
 	}
 	var cmd tea.Cmd
 	m.input, cmd = m.input.Update(msg)
+	if m.index != len(m.sentence)-1 {
+		m.index++
+	}
+
+	// currInputState := m.input.Value()
+
+	// if currInputState
+
 	return m, cmd
 }
 
