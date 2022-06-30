@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -22,6 +23,8 @@ func initModel() model {
 	input := textinput.New()
 	input.Focus()
 	input.Prompt = ""
+	input.SetCursorMode(2)
+	input.CharLimit = 50
 
 	return model{
 		options: []string{"Race others", "Race yourself"},
@@ -30,7 +33,7 @@ func initModel() model {
 }
 
 func (m model) Init() tea.Cmd {
-	return textinput.Blink
+	return nil
 }
 
 //////// MAIN MENU FUNCTIONS ////////
@@ -151,7 +154,17 @@ func ViewYourself(m model) string {
 		PaddingTop((physicalHeight - lg.Height(sentence) - 1) / 2).
 		PaddingLeft((physicalWidth - lg.Width(sentence)) / 2)
 
-	return container.Render(lg.JoinVertical(lg.Left, sentence, m.input.View()))
+	var wrong = lg.NewStyle().
+		Foreground(lg.Color("#A7171A"))
+
+	currInput := m.input.View()
+
+	if sentence[len(currInput)-1:] != currInput[len(currInput)-1:] {
+		sentence = strings.Replace(sentence, sentence[len(currInput)-1:], wrong.Render(sentence[len(currInput)-1:]), -1)
+		// currInput = strings.Replace(currInput, currInput[len(currInput)-1:], wrong.Render(currInput[len(currInput)-1:]), -1)
+	}
+
+	return container.Render(lg.JoinVertical(lg.Left, sentence, currInput))
 }
 
 // Update function for when the user has chosen to play themselves
