@@ -228,7 +228,7 @@ func ViewResults(m model) string {
 		Width(physicalWidth).
 		Height(physicalHeight).
 		PaddingTop((physicalHeight - lg.Height(m.sentence) - 1) / 2).
-		PaddingLeft((physicalWidth - lg.Width(m.sentence)) / 2)
+		Align(lg.Center)
 
 	var scheme = utility.ForegroundColour("#FFFFFF")
 
