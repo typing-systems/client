@@ -178,13 +178,18 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			}
 
 		case " ":
-			m.userSentence += " "
+			if len(m.userSentence) < len(m.sentence) {
+				m.userSentence += " "
+				return m, nil
+			}
+
 			return m, nil
 		}
 
 		if msg.Type != tea.KeyRunes {
 			return m, nil
 		}
+
 		if len(m.userSentence) < len(m.sentence) {
 			m.userSentence += msg.String()
 		}
