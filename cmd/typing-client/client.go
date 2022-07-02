@@ -144,6 +144,8 @@ func ViewYourself(m model) string {
 	for i, char := range m.userSentence {
 		if char == rune(m.sentence[i]) {
 			display += string(char)
+		} else if string(char) == " " {
+			display += wrong.Render("_")
 		} else {
 			display += wrong.Render(string(char))
 		}
@@ -183,7 +185,10 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		if msg.Type != tea.KeyRunes {
 			return m, nil
 		}
-		m.userSentence += msg.String()
+		if len(m.userSentence) < len(m.sentence) {
+			m.userSentence += msg.String()
+		}
+
 	}
 
 	return m, nil
