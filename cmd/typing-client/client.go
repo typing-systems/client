@@ -26,7 +26,7 @@ type model struct {
 }
 
 func initModel() model {
-	randSentence := utility.GetRandomSentence(2)
+	randSentence := utility.GetRandomSentence(10)
 	input := ti.New()
 
 	input.Focus()
@@ -90,6 +90,7 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		case "enter", " ":
 			m.chosen = true
 			m.userSentence = ""
+			m.sentence = utility.GetRandomSentence(10)
 		}
 	}
 
@@ -124,7 +125,6 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 
 		case "ctrl+b":
 			m.chosen = false
-			m.sentence = utility.GetRandomSentence(10)
 		}
 	}
 	return m, nil
@@ -134,10 +134,6 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 
 // This handles the view for when a choice has been made.
 func ViewYourself(m model) string {
-	if m.completed {
-		return ViewResults(m)
-	}
-
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
 
 	var container = lg.NewStyle().
@@ -198,6 +194,7 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		case "enter":
 			if len(m.userSentence) == len(m.sentence) {
 				m.completed = true
+				m.chosen = false
 			}
 
 			return m, nil
@@ -241,6 +238,23 @@ func ViewResults(m model) string {
 	return container.Render(lg.JoinVertical(lg.Left, results))
 }
 
+// ?
+
+func UpdateResults(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c", "ctrl+q":
+			return m, tea.Quit
+
+		case "ctrl+b":
+			m.completed = false
+		}
+	}
+
+	return m, nil
+}
+
 //////// MAIN FUNCTIONS ////////
 
 // Main view function, just serves to call the relevant views
@@ -251,6 +265,8 @@ func (m model) View() string {
 		} else if m.cursor == 1 {
 			return ViewYourself(m)
 		}
+	} else if m.completed {
+		return ViewResults(m)
 	}
 
 	return ViewChoice(m)
@@ -264,6 +280,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else if m.cursor == 1 {
 			return UpdateYourself(msg, m)
 		}
+	} else if m.completed {
+		return UpdateResults(msg, m)
 	}
 
 	return UpdateChoice(msg, m)
