@@ -26,7 +26,7 @@ type model struct {
 }
 
 func initModel() model {
-	randSentence := utility.GetRandomSentence(10)
+	randSentence := utility.GetRandomSentence(1)
 	input := ti.New()
 
 	input.Focus()
@@ -90,7 +90,7 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		case "enter", " ":
 			m.chosen = true
 			m.userSentence = ""
-			m.sentence = utility.GetRandomSentence(10)
+			m.sentence = utility.GetRandomSentence(1)
 		}
 	}
 
