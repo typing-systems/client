@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"os"
 	"strings"
+	"time"
 
 	lg "github.com/charmbracelet/lipgloss"
 )
@@ -56,9 +57,9 @@ func getRandomValue(line int) int64 {
 
 // Creates an array and populates it with randomly generated words, returns a string.
 func GetRandomSentence(words int) string {
-	arr := make([]string, 10)
+	arr := make([]string, 0)
 
-	for j := 0; j <= 10; j++ {
+	for j := 0; j <= words; j++ {
 		arr = append(arr, getRandomWord())
 	}
 
@@ -78,4 +79,12 @@ func HalfGen(j int, physicalWidth int, physicalHeight int, hex string) lg.Style 
 		Background(lg.Color(hex)).
 		Align(lg.Center).
 		PaddingTop((physicalHeight - j) / 2)
+}
+
+func CalculateStats(correct_strokes float64, strokes int, startTime time.Time) (float64, float64, float64) {
+	var cpm = (correct_strokes / time.Since(startTime).Minutes())
+	var wpm = (correct_strokes / 5) / (time.Since(startTime).Minutes())
+	var accuracy = ((correct_strokes / float64(strokes)) * 100)
+
+	return cpm, wpm, accuracy
 }
