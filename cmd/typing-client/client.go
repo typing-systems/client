@@ -12,12 +12,12 @@ import (
 )
 
 type model struct {
-	options  []string
-	cursor   int
-	chosen   bool
-	input    ti.Model
-	sentence string
-	index    int
+	options      []string
+	cursor       int
+	chosen       bool
+	input        ti.Model
+	sentence     string
+	userSentence string
 }
 
 func initModel() model {
@@ -30,9 +30,10 @@ func initModel() model {
 	input.CharLimit = len(randSentence)
 
 	return model{
-		options:  []string{"Race others", "Race yourself"},
-		input:    input,
-		sentence: randSentence,
+		options:      []string{"Race others", "Race yourself"},
+		input:        input,
+		sentence:     randSentence,
+		userSentence: "",
 	}
 }
 
@@ -82,7 +83,7 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 
 		case "enter", " ":
 			m.chosen = true
-			m.index = -1
+			m.userSentence = ""
 		}
 	}
 
@@ -138,25 +139,26 @@ func ViewYourself(m model) string {
 	var wrong = utility.ForegroundColour("#A7171A")
 	var primary = utility.ForegroundColour("#525252")
 
-	currInput := m.input.View()
-	sentence := m.sentence
-
-	if m.index > -1 {
-		if currInput[m.index:m.index+1] != m.sentence[m.index:m.index+1] {
-			sentence = m.sentence[:m.index] + wrong.Render(m.sentence[m.index:m.index+1]) + primary.Render(m.sentence[m.index+1:])
+	display := ""
+	for i, char := range m.userSentence {
+		if char == rune(m.sentence[i]) {
+			display += string(char)
+		} else if string(char) == " " {
+			display += wrong.Render("_")
 		} else {
-			sentence = m.sentence[:m.index] + m.sentence[m.index:m.index+1] + primary.Render(m.sentence[m.index+1:])
+			display += wrong.Render(string(char))
 		}
-	} else {
-		sentence = primary.Render(sentence)
 	}
 
-	return container.Render(lg.JoinVertical(lg.Left, sentence))
+	remaining := m.sentence[len(m.userSentence):]
+
+	display += primary.Render(remaining)
+
+	return container.Render(lg.JoinVertical(lg.Left, display))
 }
 
 // Update function for when the user has chosen to play themselves
 func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -169,22 +171,31 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			m.sentence = utility.GetRandomSentence(10)
 
 		case "backspace":
-			if m.index != -1 {
-				m.index--
+			if len(m.userSentence) > 0 {
+				m.userSentence = m.userSentence[:len(m.userSentence)-1]
+				return m, nil
 			}
-			var cmd tea.Cmd
-			m.input, cmd = m.input.Update(msg)
-			return m, cmd
+
+		case " ":
+			if len(m.userSentence) < len(m.sentence) {
+				m.userSentence += " "
+				return m, nil
+			}
+
+			return m, nil
 		}
+
+		if msg.Type != tea.KeyRunes {
+			return m, nil
+		}
+
+		if len(m.userSentence) < len(m.sentence) {
+			m.userSentence += msg.String()
+		}
+
 	}
 
-	m.input, cmd = m.input.Update(msg)
-
-	if m.index != len(m.sentence)-1 {
-		m.index++
-	}
-
-	return m, cmd
+	return m, nil
 }
 
 //////// MAIN FUNCTIONS ////////
