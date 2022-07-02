@@ -26,18 +26,15 @@ type model struct {
 }
 
 func initModel() model {
-	randSentence := utility.GetRandomSentence(1)
 	input := ti.New()
 
 	input.Focus()
 	input.Prompt = ""
 	input.SetCursorMode(2)
-	input.CharLimit = len(randSentence)
 
 	return model{
 		options:      []string{"Race others", "Race yourself"},
 		input:        input,
-		sentence:     randSentence,
 		userSentence: "",
 		completed:    false,
 	}
@@ -90,7 +87,10 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		case "enter", " ":
 			m.chosen = true
 			m.userSentence = ""
-			m.sentence = utility.GetRandomSentence(1)
+			m.sentence = utility.GetRandomSentence(10)
+			m.correct_strokes = 0
+			m.strokes = 0
+			m.completed = false
 		}
 	}
 
@@ -177,7 +177,6 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 
 		case "ctrl+b":
 			m.chosen = false
-			m.sentence = utility.GetRandomSentence(10)
 
 		case "backspace":
 			if len(m.userSentence) > 0 {
