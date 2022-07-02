@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	ti "github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,12 +13,16 @@ import (
 )
 
 type model struct {
-	options      []string
-	cursor       int
-	chosen       bool
-	input        ti.Model
-	sentence     string
-	userSentence string
+	options         []string
+	cursor          int
+	chosen          bool
+	input           ti.Model
+	sentence        string
+	userSentence    string
+	time            time.Time
+	strokes         int
+	correct_strokes float64
+	completed       bool
 }
 
 func initModel() model {
@@ -34,6 +39,7 @@ func initModel() model {
 		input:        input,
 		sentence:     randSentence,
 		userSentence: "",
+		completed:    false,
 	}
 }
 
@@ -128,6 +134,10 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 
 // This handles the view for when a choice has been made.
 func ViewYourself(m model) string {
+	if m.completed {
+		return ViewResults(m)
+	}
+
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
 
 	var container = lg.NewStyle().
@@ -159,9 +169,12 @@ func ViewYourself(m model) string {
 
 // Update function for when the user has chosen to play themselves
 func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
-
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		if m.time.IsZero() {
+			m.time = time.Now()
+		}
+
 		switch msg.String() {
 		case "ctrl+c", "ctrl+q":
 			return m, tea.Quit
@@ -182,6 +195,11 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 
+		case "enter":
+			if len(m.userSentence) == len(m.sentence) {
+				m.completed = true
+			}
+
 			return m, nil
 		}
 
@@ -196,6 +214,27 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	}
 
 	return m, nil
+}
+
+func ViewResults(m model) string {
+	var results = ""
+
+	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
+	cpm, wpm, accuracy := utility.CalculateStats(m.correct_strokes, m.strokes, m.time)
+
+	var container = lg.NewStyle().
+		Width(physicalWidth).
+		Height(physicalHeight).
+		PaddingTop((physicalHeight - lg.Height(m.sentence) - 1) / 2).
+		PaddingLeft((physicalWidth - lg.Width(m.sentence)) / 2)
+
+	var scheme = utility.ForegroundColour("#FFFFFF")
+
+	results += scheme.Render(fmt.Sprintf("CPM: %.2f\n", cpm))
+	results += scheme.Render(fmt.Sprintf("WPM: %.2f\n", wpm))
+	results += scheme.Render(fmt.Sprintf("ACCURACY: %.2f\n", accuracy))
+
+	return container.Render(lg.JoinVertical(lg.Left, results))
 }
 
 //////// MAIN FUNCTIONS ////////
