@@ -13,16 +13,20 @@ import (
 )
 
 type model struct {
-	options         []string
-	cursor          int
-	chosen          bool
-	input           ti.Model
-	sentence        string
-	userSentence    string
+	options      []string
+	cursor       int
+	chosen       bool
+	input        ti.Model
+	sentence     string
+	userSentence string
+
 	time            time.Time
 	strokes         int
 	correct_strokes float64
 	completed       bool
+
+	height int
+	width  int
 }
 
 func initModel() model {
@@ -32,12 +36,14 @@ func initModel() model {
 	input.Prompt = ""
 	input.SetCursorMode(2)
 
-	return model{
+	model := model{
 		options:      []string{"Race others", "Race yourself"},
 		input:        input,
 		userSentence: "",
 		completed:    false,
 	}
+
+	return model
 }
 
 //////// MAIN MENU FUNCTIONS ////////
@@ -72,7 +78,7 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "ctrl+q":
-			return m, tea.Quit
+			return &m, tea.Quit
 
 		case "up", "k":
 			if m.cursor > 0 {
@@ -94,7 +100,7 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	return m, nil
+	return &m, nil
 }
 
 //////// OTHERS FUNCTIONS ////////
@@ -121,13 +127,13 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "ctrl+q":
-			return m, tea.Quit
+			return &m, tea.Quit
 
 		case "ctrl+b":
 			m.chosen = false
 		}
 	}
-	return m, nil
+	return &m, nil
 }
 
 //////// YOURSELF FUNCTIONS ////////
@@ -173,7 +179,7 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 
 		switch msg.String() {
 		case "ctrl+c", "ctrl+q":
-			return m, tea.Quit
+			return &m, tea.Quit
 
 		case "ctrl+b":
 			m.chosen = false
@@ -181,13 +187,13 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		case "backspace":
 			if len(m.userSentence) > 0 {
 				m.userSentence = m.userSentence[:len(m.userSentence)-1]
-				return m, nil
+				return &m, nil
 			}
 
 		case " ":
 			if len(m.userSentence) < len(m.sentence) {
 				m.userSentence += " "
-				return m, nil
+				return &m, nil
 			}
 
 		case "enter":
@@ -196,11 +202,11 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				m.chosen = false
 			}
 
-			return m, nil
+			return &m, nil
 		}
 
 		if msg.Type != tea.KeyRunes {
-			return m, nil
+			return &m, nil
 		}
 
 		m.strokes++
@@ -213,9 +219,12 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			}
 		}
 
+	case tea.WindowSizeMsg:
+		return &m, m.resize(msg)
+
 	}
 
-	return m, nil
+	return &m, nil
 }
 
 func ViewResults(m model) string {
@@ -244,14 +253,14 @@ func UpdateResults(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "ctrl+q":
-			return m, tea.Quit
+			return &m, tea.Quit
 
 		case "ctrl+b":
 			m.completed = false
 		}
 	}
 
-	return m, nil
+	return &m, nil
 }
 
 //////// MAIN FUNCTIONS ////////
@@ -272,28 +281,36 @@ func (m model) View() string {
 }
 
 // Main update function, just serves to call the relevant update function
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.chosen {
 		if m.cursor == 0 {
-			return UpdateOthers(msg, m)
+			return UpdateOthers(msg, *m)
 		} else if m.cursor == 1 {
-			return UpdateYourself(msg, m)
+			return UpdateYourself(msg, *m)
 		}
 	} else if m.completed {
-		return UpdateResults(msg, m)
+		return UpdateResults(msg, *m)
 	}
 
-	return UpdateChoice(msg, m)
+	return UpdateChoice(msg, *m)
+}
+
+func (m *model) resize(msg tea.WindowSizeMsg) tea.Cmd {
+	m.height = msg.Height
+	m.width = msg.Width
+	return nil
 }
 
 // Setup Functions
-func (m model) Init() tea.Cmd {
+func (m *model) Init() tea.Cmd {
 	return nil
 }
 
 // Main function
 func main() {
-	client := tea.NewProgram(initModel(), tea.WithAltScreen())
+	model := initModel()
+
+	client := tea.NewProgram(&model, tea.WithAltScreen())
 	if err := client.Start(); err != nil {
 		fmt.Println("Error starting client:", err)
 		os.Exit(1)
