@@ -26,7 +26,7 @@ type model struct {
 }
 
 func initModel() model {
-	randSentence := utility.GetRandomSentence(10)
+	randSentence := utility.GetRandomSentence(2)
 	input := ti.New()
 
 	input.Focus()
@@ -207,8 +207,14 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
+		m.strokes++
+
 		if len(m.userSentence) < len(m.sentence) {
 			m.userSentence += msg.String()
+
+			if msg.Runes[0] == rune(m.sentence[len(m.userSentence)-1]) {
+				m.correct_strokes++
+			}
 		}
 
 	}
@@ -230,9 +236,7 @@ func ViewResults(m model) string {
 
 	var scheme = utility.ForegroundColour("#FFFFFF")
 
-	results += scheme.Render(fmt.Sprintf("CPM: %.2f\n", cpm))
-	results += scheme.Render(fmt.Sprintf("WPM: %.2f\n", wpm))
-	results += scheme.Render(fmt.Sprintf("ACCURACY: %.2f\n", accuracy))
+	results += scheme.Render(fmt.Sprintf("CPM: %.2f\nWPM: %.2f\nACCURACY: %.2f\n", cpm, wpm, accuracy))
 
 	return container.Render(lg.JoinVertical(lg.Left, results))
 }

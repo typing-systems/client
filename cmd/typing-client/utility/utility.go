@@ -3,6 +3,7 @@ package utility
 import (
 	"bufio"
 	"crypto/rand"
+	"fmt"
 	"log"
 	"math/big"
 	"os"
@@ -59,7 +60,7 @@ func getRandomValue(line int) int64 {
 func GetRandomSentence(words int) string {
 	arr := make([]string, 0)
 
-	for j := 0; j <= words; j++ {
+	for j := 0; j < words; j++ {
 		arr = append(arr, getRandomWord())
 	}
 
@@ -82,9 +83,14 @@ func HalfGen(j int, physicalWidth int, physicalHeight int, hex string) lg.Style 
 }
 
 func CalculateStats(correct_strokes float64, strokes int, startTime time.Time) (float64, float64, float64) {
+
 	var cpm = (correct_strokes / time.Since(startTime).Minutes())
 	var wpm = (correct_strokes / 5) / (time.Since(startTime).Minutes())
 	var accuracy = ((correct_strokes / float64(strokes)) * 100)
+
+	fmt.Println(correct_strokes)
+	fmt.Println(strokes)
+	fmt.Println(float64(strokes))
 
 	return cpm, wpm, accuracy
 }
