@@ -211,6 +211,11 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			if msg.Runes[0] == rune(m.sentence[len(m.userSentence)-1]) {
 				m.correct_strokes++
 			}
+
+			if string(msg.Runes[0]) == m.sentence[len(m.userSentence)-1:] {
+				m.completed = true
+				m.chosen = false
+			}
 		}
 
 	}
