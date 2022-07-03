@@ -24,9 +24,6 @@ type model struct {
 	strokes         int
 	correct_strokes float64
 	completed       bool
-
-	height int
-	width  int
 }
 
 func initModel() model {
@@ -218,10 +215,6 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				m.correct_strokes++
 			}
 		}
-
-	case tea.WindowSizeMsg:
-		return &m, m.resize(msg)
-
 	}
 
 	return &m, nil
@@ -293,12 +286,6 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return UpdateChoice(msg, *m)
-}
-
-func (m *model) resize(msg tea.WindowSizeMsg) tea.Cmd {
-	m.height = msg.Height
-	m.width = msg.Width
-	return nil
 }
 
 // Setup Functions
