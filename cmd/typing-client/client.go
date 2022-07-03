@@ -12,17 +12,27 @@ import (
 	"golang.org/x/term"
 )
 
+var (
+	cpm      float64
+	wpm      float64
+	accuracy float64
+)
+
 type model struct {
-	options         []string
-	cursor          int
-	chosen          bool
-	input           ti.Model
-	sentence        string
-	userSentence    string
-	time            time.Time
-	strokes         int
-	correct_strokes float64
-	completed       bool
+	sentence     string
+	userSentence string
+
+	strokes int
+	cursor  int
+
+	completed bool
+	chosen    bool
+
+	input ti.Model
+	time  time.Time
+
+	options        []string
+	correctStrokes float64
 }
 
 func initModel() model {
@@ -88,7 +98,7 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			m.chosen = true
 			m.userSentence = ""
 			m.sentence = utility.GetRandomSentence(10)
-			m.correct_strokes = 0
+			m.correctStrokes = 0
 			m.strokes = 0
 			m.completed = false
 		}
@@ -171,48 +181,58 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			m.time = time.Now()
 		}
 
-		switch msg.String() {
-		case "ctrl+c", "ctrl+q":
-			return m, tea.Quit
+		if m.completed {
+			switch msg.String() {
+			case "ctrl+c", "ctrl+q":
+				return m, tea.Quit
 
-		case "ctrl+b":
-			m.chosen = false
-
-		case "backspace":
-			if len(m.userSentence) > 0 {
-				m.userSentence = m.userSentence[:len(m.userSentence)-1]
-				return m, nil
-			}
-
-		case " ":
-			if len(m.userSentence) < len(m.sentence) {
-				m.userSentence += " "
-				return m, nil
-			}
-
-		case "enter":
-			if len(m.userSentence) == len(m.sentence) {
-				m.completed = true
+			case "ctrl+b":
 				m.chosen = false
 			}
+		} else {
+			switch msg.String() {
+			case "ctrl+c", "ctrl+q":
+				return m, tea.Quit
 
-			return m, nil
-		}
+			case "ctrl+b":
+				m.chosen = false
 
-		if msg.Type != tea.KeyRunes {
-			return m, nil
-		}
+			case "backspace":
+				if len(m.userSentence) > 0 {
+					m.userSentence = m.userSentence[:len(m.userSentence)-1]
+					return m, nil
+				}
 
-		m.strokes++
+			case " ":
+				if len(m.userSentence) < len(m.sentence) {
+					m.userSentence += " "
+					return m, nil
+				}
 
-		if len(m.userSentence) < len(m.sentence) {
-			m.userSentence += msg.String()
+			case "enter":
+				if len(m.userSentence) == len(m.sentence) {
+					m.completed = true
+					m.chosen = false
+					cpm, wpm, accuracy = utility.CalculateStats(m.correctStrokes, m.strokes, m.time)
+				}
 
-			if msg.Runes[0] == rune(m.sentence[len(m.userSentence)-1]) {
-				m.correct_strokes++
+				return m, nil
+			}
+
+			if msg.Type != tea.KeyRunes {
+				return m, nil
+			}
+
+			m.strokes++
+
+			if len(m.userSentence) < len(m.sentence) {
+				m.userSentence += msg.String()
+
+				if msg.Runes[0] == rune(m.sentence[len(m.userSentence)-1]) {
+					m.correctStrokes++
+				}
 			}
 		}
-
 	}
 
 	return m, nil
@@ -222,7 +242,6 @@ func ViewResults(m model) string {
 	var results = ""
 
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
-	cpm, wpm, accuracy := utility.CalculateStats(m.correct_strokes, m.strokes, m.time)
 
 	var container = lg.NewStyle().
 		Width(physicalWidth).
