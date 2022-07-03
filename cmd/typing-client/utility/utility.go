@@ -59,7 +59,7 @@ func getRandomValue(line int) int64 {
 func GetRandomSentence(words int) string {
 	arr := make([]string, 0)
 
-	for j := 0; j < words; j++ {
+	for i := 0; i < words; i++ {
 		arr = append(arr, getRandomWord())
 	}
 
@@ -72,13 +72,13 @@ func ForegroundColour(hex string) lg.Style {
 }
 
 //  Serves as a utility class for syntactic sugar, returns a lip gloss style.
-func HalfGen(j int, physicalWidth int, physicalHeight int, hex string) lg.Style {
+func HalfGen(numVertLines int, physicalWidth int, physicalHeight int, hex string) lg.Style {
 	return lg.NewStyle().
 		Width(physicalWidth / 2).
 		Height(physicalHeight).
 		Background(lg.Color(hex)).
 		Align(lg.Center).
-		PaddingTop((physicalHeight - j) / 2)
+		PaddingTop((physicalHeight - numVertLines) / 2)
 }
 
 func CalculateStats(correctStrokes float64, strokes int, startTime time.Time) (float64, float64, float64) {
