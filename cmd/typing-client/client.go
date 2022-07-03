@@ -139,6 +139,7 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			m.chosen = false
 		}
 	}
+
 	return &m, nil
 }
 
@@ -151,7 +152,7 @@ func ViewYourself(m model) string {
 	var container = lg.NewStyle().
 		Width(physicalWidth).
 		Height(physicalHeight).
-		PaddingTop((physicalHeight - lg.Height(m.sentence) - 1) / 2).
+		PaddingTop((physicalHeight - lg.Height(m.sentence)) / 2).
 		PaddingLeft((physicalWidth - lg.Width(m.sentence)) / 2)
 
 	var wrong = utility.ForegroundColour("#A7171A")
