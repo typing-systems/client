@@ -330,7 +330,7 @@ func main() {
 
 	client := tea.NewProgram(&model, tea.WithAltScreen())
 	if err := client.Start(); err != nil {
-		fmt.Println("Error starting client:", err)
+		fmt.Sprintln("Error starting client:", err)
 		os.Exit(1)
 	}
 }
