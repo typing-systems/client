@@ -81,10 +81,10 @@ func HalfGen(j int, physicalWidth int, physicalHeight int, hex string) lg.Style 
 		PaddingTop((physicalHeight - j) / 2)
 }
 
-func CalculateStats(correct_strokes float64, strokes int, startTime time.Time) (float64, float64, float64) {
-	var cpm = (correct_strokes / time.Since(startTime).Minutes())
-	var wpm = (correct_strokes / 5) / (time.Since(startTime).Minutes())
-	var accuracy = ((correct_strokes / float64(strokes)) * 100)
+func CalculateStats(correctStrokes float64, strokes int, startTime time.Time) (float64, float64, float64) {
+	var cpm = (correctStrokes / time.Since(startTime).Minutes())
+	var wpm = (correctStrokes / 5) / (time.Since(startTime).Minutes())
+	var accuracy = ((correctStrokes / float64(strokes)) * 100)
 
 	return cpm, wpm, accuracy
 }

@@ -12,17 +12,27 @@ import (
 	"golang.org/x/term"
 )
 
+var (
+	cpm      float64
+	wpm      float64
+	accuracy float64
+)
+
 type model struct {
-	options         []string
-	cursor          int
-	chosen          bool
-	input           ti.Model
-	sentence        string
-	userSentence    string
-	time            time.Time
-	strokes         int
-	correct_strokes float64
-	completed       bool
+	sentence     string
+	userSentence string
+
+	strokes int
+	cursor  int
+
+	completed bool
+	chosen    bool
+
+	input ti.Model
+	time  time.Time
+
+	options        []string
+	correctStrokes float64
 }
 
 func initModel() model {
@@ -88,7 +98,7 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			m.chosen = true
 			m.userSentence = ""
 			m.sentence = utility.GetRandomSentence(10)
-			m.correct_strokes = 0
+			m.correctStrokes = 0
 			m.strokes = 0
 			m.completed = false
 		}
@@ -209,7 +219,7 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			m.userSentence += msg.String()
 
 			if msg.Runes[0] == rune(m.sentence[len(m.userSentence)-1]) {
-				m.correct_strokes++
+				m.correctStrokes++
 			}
 		}
 
@@ -222,7 +232,8 @@ func ViewResults(m model) string {
 	var results = ""
 
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
-	cpm, wpm, accuracy := utility.CalculateStats(m.correct_strokes, m.strokes, m.time)
+
+	cpm, wpm, accuracy = utility.CalculateStats(m.correctStrokes, m.strokes, m.time)
 
 	var container = lg.NewStyle().
 		Width(physicalWidth).
