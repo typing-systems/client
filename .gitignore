@@ -12,6 +12,7 @@
 
 !*.go
 !*.yml
+!*.yaml
 !go.sum
 !go.mod
 
