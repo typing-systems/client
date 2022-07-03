@@ -23,3 +23,4 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: latest
+          args: linters -E deadcode, errcheck, gosimple, govet, ineffassign, staticcheck, typecheck, unused, varcheck, bidichk, cyclop, decorder, depguard, dogsled, dupl, durationcheck, errchkjson, errname, errorlint, exportloopref, gci, gocognit, goconst, gocyclo, godox, goerr113, goimports, gomnd, goprintffuncname, gosec, grouper, ifshort, maintidx, makezero, nakedret, nilerr, nilnil, nlreturn, nosnakecase, prealloc, predeclared, revive, unconvert, unparam, wastedassign, whitespace
