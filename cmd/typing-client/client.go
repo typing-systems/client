@@ -191,6 +191,12 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			}
 		} else {
 			switch msg.String() {
+			case "ctrl+c", "ctrl+q":
+				return m, tea.Quit
+
+			case "ctrl+b":
+				m.chosen = false
+
 			case "backspace":
 				if len(m.userSentence) > 0 {
 					m.userSentence = m.userSentence[:len(m.userSentence)-1]
