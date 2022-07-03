@@ -80,21 +80,21 @@ func ViewChoice(m model) string {
 func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "ctrl+q":
+		switch msg.Type {
+		case tea.KeyCtrlC, tea.KeyCtrlQ:
 			return m, tea.Quit
 
-		case "up", "k":
+		case tea.KeyUp:
 			if m.cursor > 0 {
 				m.cursor--
 			}
 
-		case "down", "j":
+		case tea.KeyDown:
 			if m.cursor < len(m.options)-1 {
 				m.cursor++
 			}
 
-		case "enter", " ":
+		case tea.KeyEnter, tea.KeySpace:
 			m.chosen = true
 			m.userSentence = ""
 			m.sentence = utility.GetRandomSentence(10)
@@ -129,11 +129,11 @@ func ViewOthers(m model) string {
 func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "ctrl+q":
+		switch msg.Type {
+		case tea.KeyCtrlC, tea.KeyCtrlQ:
 			return m, tea.Quit
 
-		case "ctrl+b":
+		case tea.KeyCtrlB:
 			m.chosen = false
 		}
 	}
@@ -182,34 +182,40 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		}
 
 		if m.completed {
-			switch msg.String() {
-			case "ctrl+c", "ctrl+q":
+			switch msg.Type {
+			case tea.KeyCtrlC, tea.KeyCtrlQ:
 				return m, tea.Quit
 
-			case "ctrl+b":
+			case tea.KeyCtrlB:
 				m.chosen = false
+
+			case tea.KeyBackspace:
+				if len(m.userSentence) > 0 {
+					m.userSentence = m.userSentence[:len(m.userSentence)-1]
+					return m, nil
+				}
 			}
 		} else {
-			switch msg.String() {
-			case "ctrl+c", "ctrl+q":
+			switch msg.Type {
+			case tea.KeyCtrlC, tea.KeyCtrlQ:
 				return m, tea.Quit
 
-			case "ctrl+b":
+			case tea.KeyCtrlB:
 				m.chosen = false
 
-			case "backspace":
+			case tea.KeyBackspace:
 				if len(m.userSentence) > 0 {
 					m.userSentence = m.userSentence[:len(m.userSentence)-1]
 					return m, nil
 				}
 
-			case " ":
+			case tea.KeySpace:
 				if len(m.userSentence) < len(m.sentence) {
 					m.userSentence += " "
 					return m, nil
 				}
 
-			case "enter":
+			case tea.KeyEnter:
 				if len(m.userSentence) == len(m.sentence) {
 					m.completed = true
 					m.chosen = false
@@ -236,6 +242,7 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			if string(msg.Runes[0]) == m.sentence[len(m.userSentence)-1:] {
 				m.completed = true
 				m.chosen = false
+				cpm, wpm, accuracy = utility.CalculateStats(m.correctStrokes, m.strokes, m.time)
 			}
 		}
 	}
@@ -266,11 +273,11 @@ func ViewResults(m model) string {
 func UpdateResults(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "ctrl+q":
+		switch msg.Type {
+		case tea.KeyCtrlC, tea.KeyCtrlQ:
 			return m, tea.Quit
 
-		case "ctrl+b":
+		case tea.KeyCtrlB:
 			m.completed = false
 		}
 	}
