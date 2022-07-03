@@ -181,48 +181,52 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			m.time = time.Now()
 		}
 
-		switch msg.String() {
-		case "ctrl+c", "ctrl+q":
-			return m, tea.Quit
+		if m.completed {
+			switch msg.String() {
+			case "ctrl+c", "ctrl+q":
+				return m, tea.Quit
 
-		case "ctrl+b":
-			m.chosen = false
-
-		case "backspace":
-			if len(m.userSentence) > 0 {
-				m.userSentence = m.userSentence[:len(m.userSentence)-1]
-				return m, nil
-			}
-
-		case " ":
-			if len(m.userSentence) < len(m.sentence) {
-				m.userSentence += " "
-				return m, nil
-			}
-
-		case "enter":
-			if len(m.userSentence) == len(m.sentence) {
-				m.completed = true
+			case "ctrl+b":
 				m.chosen = false
 			}
+		} else {
+			switch msg.String() {
+			case "backspace":
+				if len(m.userSentence) > 0 {
+					m.userSentence = m.userSentence[:len(m.userSentence)-1]
+					return m, nil
+				}
 
-			return m, nil
-		}
+			case " ":
+				if len(m.userSentence) < len(m.sentence) {
+					m.userSentence += " "
+					return m, nil
+				}
 
-		if msg.Type != tea.KeyRunes {
-			return m, nil
-		}
+			case "enter":
+				if len(m.userSentence) == len(m.sentence) {
+					m.completed = true
+					m.chosen = false
+					cpm, wpm, accuracy = utility.CalculateStats(m.correctStrokes, m.strokes, m.time)
+				}
 
-		m.strokes++
+				return m, nil
+			}
 
-		if len(m.userSentence) < len(m.sentence) {
-			m.userSentence += msg.String()
+			if msg.Type != tea.KeyRunes {
+				return m, nil
+			}
 
-			if msg.Runes[0] == rune(m.sentence[len(m.userSentence)-1]) {
-				m.correctStrokes++
+			m.strokes++
+
+			if len(m.userSentence) < len(m.sentence) {
+				m.userSentence += msg.String()
+
+				if msg.Runes[0] == rune(m.sentence[len(m.userSentence)-1]) {
+					m.correctStrokes++
+				}
 			}
 		}
-
 	}
 
 	return m, nil
@@ -232,8 +236,6 @@ func ViewResults(m model) string {
 	var results = ""
 
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
-
-	cpm, wpm, accuracy = utility.CalculateStats(m.correctStrokes, m.strokes, m.time)
 
 	var container = lg.NewStyle().
 		Width(physicalWidth).
