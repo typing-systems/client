@@ -232,6 +232,11 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 					m.correctStrokes++
 				}
 			}
+
+			if string(msg.Runes[0]) == m.sentence[len(m.userSentence)-1:] {
+				m.completed = true
+				m.chosen = false
+			}
 		}
 	}
 
