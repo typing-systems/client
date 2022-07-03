@@ -42,12 +42,14 @@ func initModel() model {
 	input.Prompt = ""
 	input.SetCursorMode(2)
 
-	return model{
+	model := model{
 		options:      []string{"Race others", "Race yourself"},
 		input:        input,
 		userSentence: "",
 		completed:    false,
 	}
+
+	return model
 }
 
 //////// MAIN MENU FUNCTIONS ////////
@@ -82,7 +84,7 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC, tea.KeyCtrlQ:
-			return m, tea.Quit
+			return &m, tea.Quit
 
 		case tea.KeyUp:
 			if m.cursor > 0 {
@@ -104,7 +106,7 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	return m, nil
+	return &m, nil
 }
 
 //////// OTHERS FUNCTIONS ////////
@@ -131,13 +133,13 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC, tea.KeyCtrlQ:
-			return m, tea.Quit
+			return &m, tea.Quit
 
 		case tea.KeyCtrlB:
 			m.chosen = false
 		}
 	}
-	return m, nil
+	return &m, nil
 }
 
 //////// YOURSELF FUNCTIONS ////////
@@ -184,7 +186,7 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		if m.completed {
 			switch msg.Type {
 			case tea.KeyCtrlC, tea.KeyCtrlQ:
-				return m, tea.Quit
+				return &m, tea.Quit
 
 			case tea.KeyCtrlB:
 				m.chosen = false
@@ -192,13 +194,13 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			case tea.KeyBackspace:
 				if len(m.userSentence) > 0 {
 					m.userSentence = m.userSentence[:len(m.userSentence)-1]
-					return m, nil
+					return &m, nil
 				}
 			}
 		} else {
 			switch msg.Type {
 			case tea.KeyCtrlC, tea.KeyCtrlQ:
-				return m, tea.Quit
+				return &m, tea.Quit
 
 			case tea.KeyCtrlB:
 				m.chosen = false
@@ -206,13 +208,13 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			case tea.KeyBackspace:
 				if len(m.userSentence) > 0 {
 					m.userSentence = m.userSentence[:len(m.userSentence)-1]
-					return m, nil
+					return &m, nil
 				}
 
 			case tea.KeySpace:
 				if len(m.userSentence) < len(m.sentence) {
 					m.userSentence += " "
-					return m, nil
+					return &m, nil
 				}
 
 			case tea.KeyEnter:
@@ -222,32 +224,32 @@ func UpdateYourself(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 					cpm, wpm, accuracy = utility.CalculateStats(m.correctStrokes, m.strokes, m.time)
 				}
 
-				return m, nil
+				return &m, nil
 			}
 
 			if msg.Type != tea.KeyRunes {
-				return m, nil
+				return &m, nil
 			}
+		}
 
-			m.strokes++
+		m.strokes++
 
-			if len(m.userSentence) < len(m.sentence) {
-				m.userSentence += msg.String()
+		if len(m.userSentence) < len(m.sentence) {
+			m.userSentence += msg.String()
 
-				if msg.Runes[0] == rune(m.sentence[len(m.userSentence)-1]) {
-					m.correctStrokes++
-				}
+			if msg.Runes[0] == rune(m.sentence[len(m.userSentence)-1]) {
+				m.correctStrokes++
 			}
+		}
 
-			if string(msg.Runes[0]) == m.sentence[len(m.userSentence)-1:] {
-				m.completed = true
-				m.chosen = false
-				cpm, wpm, accuracy = utility.CalculateStats(m.correctStrokes, m.strokes, m.time)
-			}
+		if string(msg.Runes[0]) == m.sentence[len(m.userSentence)-1:] {
+			m.completed = true
+			m.chosen = false
+			cpm, wpm, accuracy = utility.CalculateStats(m.correctStrokes, m.strokes, m.time)
 		}
 	}
 
-	return m, nil
+	return &m, nil
 }
 
 func ViewResults(m model) string {
@@ -275,14 +277,14 @@ func UpdateResults(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC, tea.KeyCtrlQ:
-			return m, tea.Quit
+			return &m, tea.Quit
 
 		case tea.KeyCtrlB:
 			m.completed = false
 		}
 	}
 
-	return m, nil
+	return &m, nil
 }
 
 //////// MAIN FUNCTIONS ////////
@@ -303,28 +305,30 @@ func (m model) View() string {
 }
 
 // Main update function, just serves to call the relevant update function
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.chosen {
 		if m.cursor == 0 {
-			return UpdateOthers(msg, m)
+			return UpdateOthers(msg, *m)
 		} else if m.cursor == 1 {
-			return UpdateYourself(msg, m)
+			return UpdateYourself(msg, *m)
 		}
 	} else if m.completed {
-		return UpdateResults(msg, m)
+		return UpdateResults(msg, *m)
 	}
 
-	return UpdateChoice(msg, m)
+	return UpdateChoice(msg, *m)
 }
 
 // Setup Functions
-func (m model) Init() tea.Cmd {
+func (m *model) Init() tea.Cmd {
 	return nil
 }
 
 // Main function
 func main() {
-	client := tea.NewProgram(initModel(), tea.WithAltScreen())
+	model := initModel()
+
+	client := tea.NewProgram(&model, tea.WithAltScreen())
 	if err := client.Start(); err != nil {
 		fmt.Println("Error starting client:", err)
 		os.Exit(1)
