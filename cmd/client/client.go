@@ -8,7 +8,7 @@ import (
 	ti "github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	lg "github.com/charmbracelet/lipgloss"
-	"github.com/typing-systems/typing/cmd/typing-client/utility"
+	"github.com/typing-systems/typing/cmd/client/utility"
 	"golang.org/x/term"
 )
 
