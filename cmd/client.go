@@ -16,6 +16,7 @@ import (
 	"github.com/typing-systems/typing/cmd/utility"
 	"golang.org/x/term"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 var (
@@ -30,7 +31,6 @@ type model struct {
 
 	strokes int
 	cursor  int
-	myLane  int
 
 	completed bool
 	chosen    bool
@@ -47,15 +47,17 @@ type model struct {
 }
 
 func initModel() model {
-	conn, err := grpc.Dial(":9000", grpc.WithInsecure())
+	conn, err := grpc.Dial(":9000", grpc.WithTransportCredentials, insecure.NewCredentials())
 	if err != nil {
 		log.Fatalf("did not connect: %s", err)
 	}
 
 	connection := connections.NewConnectionsClient(conn)
 
-	connection.SayHello(context.Background(), &connections.Message{Body: "Hello From Client!"})
-	connection.Connected(context.Background(), &connections.Message{Body: "myClientID"})
+	_, err = connection.Connected(context.Background(), &connections.Message{Body: "myClientID"})
+	if err != nil {
+		log.Fatalf("Connected failed: %s", err)
+	}
 
 	input := ti.New()
 
