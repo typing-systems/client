@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	ti "github.com/charmbracelet/bubbles/textinput"
@@ -24,6 +25,7 @@ type model struct {
 
 	strokes int
 	cursor  int
+	myLane  int
 
 	completed bool
 	chosen    bool
@@ -33,6 +35,7 @@ type model struct {
 
 	options        []string
 	correctStrokes float64
+	otherLanes     []int
 }
 
 func initModel() model {
@@ -47,6 +50,7 @@ func initModel() model {
 		input:        input,
 		userSentence: "",
 		completed:    false,
+		otherLanes:   []int{1, 2, 3},
 	}
 
 	return model
@@ -110,33 +114,100 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 }
 
 //////// OTHERS FUNCTIONS ////////
-
-// This handles the view for when a choice has been made.
 func ViewOthers(m model) string {
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
 
-	var leftHalf = utility.HalfGen(1, physicalWidth, physicalHeight, "#344e41")
-	var rightHalf = leftHalf.Copy().Background(lg.Color("#000000")).PaddingTop((physicalHeight - 4) / 2)
+	topHalf := lg.NewStyle().
+		Width(physicalWidth).
+		Height(physicalHeight / 2).
+		Background(lg.Color("#525252")).
+		PaddingTop((physicalHeight / 4) - lg.Height(m.sentence))
 
-	left := "TYPING.SYSTEMS"
-	right := "CHOSEN OTHERS"
+	lane1 := strings.Repeat("=", m.otherLanes[0])
+	lane2 := strings.Repeat("=", m.otherLanes[1])
+	lane3 := strings.Repeat("=", m.otherLanes[2])
+	lane4 := strings.Repeat("=", int(m.correctStrokes))
 
-	right += "\n\nPress backspace to go back to the main menu."
-	right += "\nPress ctrl+q to quit."
+	bottomHalf := topHalf.Copy().UnsetBackground()
 
-	return lg.JoinHorizontal(lg.Center, leftHalf.Render(left), rightHalf.Render(right))
+	var wrong = utility.ForegroundColour("#A7171A")
+	var primary = utility.ForegroundColour("#525252")
+
+	display := ""
+	for i, char := range m.userSentence {
+		if char == rune(m.sentence[i]) {
+			display += string(char)
+		} else if string(char) == " " {
+			display += wrong.Render("_")
+		} else {
+			display += wrong.Render(string(char))
+		}
+	}
+
+	remaining := m.sentence[len(m.userSentence):]
+
+	display += primary.Render(remaining)
+
+	return lg.JoinVertical(lg.Center, topHalf.Render(lg.JoinVertical(lg.Left, lane1, lane2, lane3, lane4)), bottomHalf.Render(display))
 }
 
-// Update function for when the user has chosen to play others
 func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyCtrlC, tea.KeyCtrlQ:
-			return &m, tea.Quit
+		if m.time.IsZero() {
+			m.time = time.Now()
+		}
 
-		case tea.KeyCtrlB:
-			m.chosen = false
+		if m.completed {
+			switch msg.Type {
+			case tea.KeyCtrlC, tea.KeyCtrlQ:
+				return &m, tea.Quit
+
+			case tea.KeyCtrlB:
+				m.chosen = false
+
+			case tea.KeyBackspace:
+				if len(m.userSentence) > 0 {
+					m.userSentence = m.userSentence[:len(m.userSentence)-1]
+					return &m, nil
+				}
+			}
+		} else {
+			switch msg.Type {
+			case tea.KeyCtrlC, tea.KeyCtrlQ:
+				return &m, tea.Quit
+
+			case tea.KeyCtrlB:
+				m.chosen = false
+
+			case tea.KeyBackspace:
+				if len(m.userSentence) > 0 {
+					m.userSentence = m.userSentence[:len(m.userSentence)-1]
+					return &m, nil
+				}
+
+			case tea.KeySpace:
+				if len(m.userSentence) < len(m.sentence) {
+					m.userSentence += " "
+					return &m, nil
+				}
+
+				return &m, nil
+			}
+
+			if msg.Type != tea.KeyRunes {
+				return &m, nil
+			}
+		}
+
+		m.strokes++
+
+		if len(m.userSentence) < len(m.sentence) {
+			m.userSentence += msg.String()
+
+			if msg.Runes[0] == rune(m.sentence[len(m.userSentence)-1]) {
+				m.correctStrokes++
+			}
 		}
 	}
 
