@@ -1,16 +1,21 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
 	ti "github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	lg "github.com/charmbracelet/lipgloss"
+	"github.com/typing-systems/typing/cmd/connections"
 	"github.com/typing-systems/typing/cmd/utility"
 	"golang.org/x/term"
+	"google.golang.org/grpc"
 )
 
 var (
@@ -35,10 +40,23 @@ type model struct {
 
 	options        []string
 	correctStrokes float64
-	otherLanes     []int
+	lanes          []int
+
+	c    connections.ConnectionsClient
+	conn *grpc.ClientConn
 }
 
 func initModel() model {
+	conn, err := grpc.Dial(":9000", grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect: %s", err)
+	}
+
+	connection := connections.NewConnectionsClient(conn)
+
+	connection.SayHello(context.Background(), &connections.Message{Body: "Hello From Client!"})
+	connection.Connected(context.Background(), &connections.Message{Body: "myClientID"})
+
 	input := ti.New()
 
 	input.Focus()
@@ -50,7 +68,9 @@ func initModel() model {
 		input:        input,
 		userSentence: "",
 		completed:    false,
-		otherLanes:   []int{1, 2, 3},
+		lanes:        []int{1, 2, 3, 4},
+		c:            connection,
+		conn:         conn,
 	}
 
 	return model
@@ -123,10 +143,10 @@ func ViewOthers(m model) string {
 		Background(lg.Color("#525252")).
 		PaddingTop((physicalHeight / 4) - lg.Height(m.sentence))
 
-	lane1 := strings.Repeat("=", m.otherLanes[0])
-	lane2 := strings.Repeat("=", m.otherLanes[1])
-	lane3 := strings.Repeat("=", m.otherLanes[2])
-	lane4 := strings.Repeat("=", int(m.correctStrokes))
+	lane1 := strings.Repeat("=", m.lanes[0])
+	lane2 := strings.Repeat("=", m.lanes[1])
+	lane3 := strings.Repeat("=", m.lanes[2])
+	lane4 := strings.Repeat("=", m.lanes[3])
 
 	bottomHalf := topHalf.Copy().UnsetBackground()
 
@@ -207,6 +227,15 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 
 			if msg.Runes[0] == rune(m.sentence[len(m.userSentence)-1]) {
 				m.correctStrokes++
+
+				reply, err := m.c.Positions(context.Background(), &connections.MyPosition{ID: "id", Lane: "lane1"})
+				if err != nil {
+					log.Fatal("Error calling Positions", err)
+				}
+				m.lanes[0], _ = strconv.Atoi(reply.Lane1)
+				m.lanes[1], _ = strconv.Atoi(reply.Lane2)
+				m.lanes[2], _ = strconv.Atoi(reply.Lane3)
+				m.lanes[3], _ = strconv.Atoi(reply.Lane4)
 			}
 		}
 	}
@@ -399,6 +428,7 @@ func (m *model) Init() tea.Cmd {
 // Main function
 func main() {
 	model := initModel()
+	defer model.conn.Close()
 
 	client := tea.NewProgram(&model, tea.WithAltScreen())
 	if err := client.Start(); err != nil {
