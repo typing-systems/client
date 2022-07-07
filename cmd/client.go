@@ -28,6 +28,8 @@ var (
 type model struct {
 	sentence     string
 	userSentence string
+	myLobby      string
+	myLane       string
 
 	strokes int
 	cursor  int
@@ -54,7 +56,7 @@ func initModel() model {
 
 	connection := connections.NewConnectionsClient(conn)
 
-	_, err = connection.Connected(context.Background(), &connections.Message{Body: "myClientID"})
+	reply, err := connection.Connected(context.Background(), &connections.Empty{})
 	if err != nil {
 		log.Fatalf("Connected failed: %s", err)
 	}
@@ -73,6 +75,8 @@ func initModel() model {
 		lanes:        []int{1, 2, 3, 4},
 		c:            connection,
 		conn:         conn,
+		myLobby:      reply.ID,
+		myLane:       reply.Lane,
 	}
 
 	return model
@@ -230,7 +234,7 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			if msg.Runes[0] == rune(m.sentence[len(m.userSentence)-1]) {
 				m.correctStrokes++
 
-				reply, err := m.c.Positions(context.Background(), &connections.MyPosition{ID: "id", Lane: "lane1"})
+				reply, err := m.c.Positions(context.Background(), &connections.MyPosition{ID: m.myLobby, Lane: m.myLane})
 				if err != nil {
 					log.Fatal("Error calling Positions", err)
 				}
