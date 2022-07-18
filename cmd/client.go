@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -45,8 +44,9 @@ type model struct {
 	correctStrokes float64
 	lanes          []int
 
-	c    connections.ConnectionsClient
-	conn *grpc.ClientConn
+	c             connections.ConnectionsClient
+	conn          *grpc.ClientConn
+	positionsChan chan *connections.PositionInfo
 }
 
 func initModel() model {
@@ -69,15 +69,16 @@ func initModel() model {
 	input.SetCursorMode(2)
 
 	model := model{
-		options:      []string{"Race others", "Race yourself"},
-		input:        input,
-		userSentence: "",
-		completed:    false,
-		lanes:        []int{1, 2, 3, 4},
-		c:            connection,
-		conn:         conn,
-		myLobby:      reply.LobbyID,
-		myLane:       reply.Lane,
+		options:       []string{"Race others", "Race yourself"},
+		input:         input,
+		userSentence:  "",
+		completed:     false,
+		lanes:         []int{1, 2, 3, 4},
+		c:             connection,
+		conn:          conn,
+		myLobby:       reply.LobbyID,
+		myLane:        reply.Lane,
+		positionsChan: make(chan *connections.PositionInfo),
 	}
 
 	return model
@@ -241,27 +242,28 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
-		stream, err := m.c.Positions(context.Background(), &connections.MyLobby{LobbyID: m.myLobby})
-		if err != nil {
-			log.Fatalf("error with positions: %v", err)
-		}
-		go func() {
-			for {
-				value, err := stream.Recv()
-				if err == io.EOF {
-					return
-				}
-				if err != nil {
-					log.Fatalf("error receiving from stream: %v", err)
-				}
-				m.lanes[0], _ = strconv.Atoi(value.Lane1)
-				m.lanes[1], _ = strconv.Atoi(value.Lane2)
-				m.lanes[2], _ = strconv.Atoi(value.Lane3)
-				m.lanes[3], _ = strconv.Atoi(value.Lane4)
-			}
-		}()
+	// stream, err := m.c.Positions(context.Background(), &connections.MyLobby{LobbyID: m.myLobby})
+	// if err != nil {
+	// 	log.Fatalf("error with positions: %v", err)
+	// }
+	// go func() {
+	// 	for {
+	// 		value, err := stream.Recv()
+	// 		if err == io.EOF {
+	// 			return
+	// 		}
+	// 		if err != nil {
+	// 			log.Fatalf("error receiving from stream: %v", err)
+	// 		}
+	// 		m.lanes[0], _ = strconv.Atoi(value.Lane1)
+	// 		m.lanes[1], _ = strconv.Atoi(value.Lane2)
+	// 		m.lanes[2], _ = strconv.Atoi(value.Lane3)
+	// 		m.lanes[3], _ = strconv.Atoi(value.Lane4)
+	// 	}
+	// }()
+	case positionMsg:
+		m.lanes = msg.String()
 	}
-
 	return &m, nil
 }
 
@@ -442,6 +444,36 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return UpdateChoice(msg, *m)
 }
 
+type positionMsg []string
+
+func (m *model) listenForPositions() {
+	stream, err := m.c.Positions(context.Background(), &connections.MyLobby{LobbyID: m.myLobby})
+	if err != nil {
+		log.Fatalf("error with positions: %v", err)
+	}
+	for {
+		value, err := stream.Recv()
+		if err == io.EOF {
+			return
+		}
+		if err != nil {
+			log.Fatalf("error receiving from stream: %v", err)
+		}
+		m.positionsChan <- value
+	}
+}
+
+func waitForPositions(position chan *connections.PositionInfo) tea.Cmd {
+	return func() tea.Msg {
+		positionArr := make(positionMsg, 0)
+		positionArr[0] = (<-position).Lane1
+		positionArr[1] = (<-position).Lane2
+		positionArr[2] = (<-position).Lane3
+		positionArr[3] = (<-position).Lane4
+		return positionArr
+	}
+}
+
 // Setup Functions
 func (m *model) Init() tea.Cmd {
 	return nil
@@ -449,10 +481,12 @@ func (m *model) Init() tea.Cmd {
 
 // Main function
 func main() {
-	model := initModel()
-	defer model.conn.Close()
+	m := initModel()
+	defer m.conn.Close()
 
-	client := tea.NewProgram(&model, tea.WithAltScreen())
+	go m.listenForPositions()
+
+	client := tea.NewProgram(&m, tea.WithAltScreen())
 	if err := client.Start(); err != nil {
 		fmt.Sprintln("Error starting client:", err)
 		os.Exit(1)
