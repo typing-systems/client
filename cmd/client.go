@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strconv"
@@ -75,7 +76,7 @@ func initModel() model {
 		lanes:        []int{1, 2, 3, 4},
 		c:            connection,
 		conn:         conn,
-		myLobby:      reply.ID,
+		myLobby:      reply.LobbyID,
 		myLane:       reply.Lane,
 	}
 
@@ -234,16 +235,31 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			if msg.Runes[0] == rune(m.sentence[len(m.userSentence)-1]) {
 				m.correctStrokes++
 
-				reply, err := m.c.Positions(context.Background(), &connections.MyPosition{ID: m.myLobby, Lane: m.myLane})
+				_, err := m.c.UpdatePosition(context.Background(), &connections.MyPosition{LobbyID: m.myLobby, Lane: m.myLane})
 				if err != nil {
 					log.Fatal("Error calling Positions", err)
 				}
-				m.lanes[0], _ = strconv.Atoi(reply.Lane1)
-				m.lanes[1], _ = strconv.Atoi(reply.Lane2)
-				m.lanes[2], _ = strconv.Atoi(reply.Lane3)
-				m.lanes[3], _ = strconv.Atoi(reply.Lane4)
 			}
 		}
+		stream, err := m.c.Positions(context.Background(), &connections.MyLobby{LobbyID: m.myLobby})
+		if err != nil {
+			log.Fatalf("error with positions: %v", err)
+		}
+		go func() {
+			for {
+				value, err := stream.Recv()
+				if err == io.EOF {
+					return
+				}
+				if err != nil {
+					log.Fatalf("error receiving from stream: %v", err)
+				}
+				m.lanes[0], _ = strconv.Atoi(value.Lane1)
+				m.lanes[1], _ = strconv.Atoi(value.Lane2)
+				m.lanes[2], _ = strconv.Atoi(value.Lane3)
+				m.lanes[3], _ = strconv.Atoi(value.Lane4)
+			}
+		}()
 	}
 
 	return &m, nil

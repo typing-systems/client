@@ -67,8 +67,8 @@ type MyPosition struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ID   string `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
-	Lane string `protobuf:"bytes,2,opt,name=lane,proto3" json:"lane,omitempty"`
+	LobbyID string `protobuf:"bytes,1,opt,name=lobbyID,proto3" json:"lobbyID,omitempty"`
+	Lane    string `protobuf:"bytes,2,opt,name=lane,proto3" json:"lane,omitempty"`
 }
 
 func (x *MyPosition) Reset() {
@@ -103,9 +103,9 @@ func (*MyPosition) Descriptor() ([]byte, []int) {
 	return file_proto_connections_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *MyPosition) GetID() string {
+func (x *MyPosition) GetLobbyID() string {
 	if x != nil {
-		return x.ID
+		return x.LobbyID
 	}
 	return ""
 }
@@ -113,6 +113,53 @@ func (x *MyPosition) GetID() string {
 func (x *MyPosition) GetLane() string {
 	if x != nil {
 		return x.Lane
+	}
+	return ""
+}
+
+type MyLobby struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	LobbyID string `protobuf:"bytes,1,opt,name=lobbyID,proto3" json:"lobbyID,omitempty"`
+}
+
+func (x *MyLobby) Reset() {
+	*x = MyLobby{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_connections_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MyLobby) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MyLobby) ProtoMessage() {}
+
+func (x *MyLobby) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_connections_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MyLobby.ProtoReflect.Descriptor instead.
+func (*MyLobby) Descriptor() ([]byte, []int) {
+	return file_proto_connections_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *MyLobby) GetLobbyID() string {
+	if x != nil {
+		return x.LobbyID
 	}
 	return ""
 }
@@ -131,7 +178,7 @@ type PositionInfo struct {
 func (x *PositionInfo) Reset() {
 	*x = PositionInfo{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_connections_proto_msgTypes[2]
+		mi := &file_proto_connections_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -144,7 +191,7 @@ func (x *PositionInfo) String() string {
 func (*PositionInfo) ProtoMessage() {}
 
 func (x *PositionInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_connections_proto_msgTypes[2]
+	mi := &file_proto_connections_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -157,7 +204,7 @@ func (x *PositionInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PositionInfo.ProtoReflect.Descriptor instead.
 func (*PositionInfo) Descriptor() ([]byte, []int) {
-	return file_proto_connections_proto_rawDescGZIP(), []int{2}
+	return file_proto_connections_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *PositionInfo) GetLane1() string {
@@ -193,25 +240,32 @@ var File_proto_connections_proto protoreflect.FileDescriptor
 var file_proto_connections_proto_rawDesc = []byte{
 	0x0a, 0x17, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69,
 	0x6f, 0x6e, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x04, 0x63, 0x68, 0x61, 0x74, 0x22,
-	0x07, 0x0a, 0x05, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x30, 0x0a, 0x0a, 0x4d, 0x79, 0x50, 0x6f,
-	0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x0e, 0x0a, 0x02, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x02, 0x49, 0x44, 0x12, 0x12, 0x0a, 0x04, 0x6c, 0x61, 0x6e, 0x65, 0x18, 0x02,
-	0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6c, 0x61, 0x6e, 0x65, 0x22, 0x66, 0x0a, 0x0c, 0x50, 0x6f,
-	0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x14, 0x0a, 0x05, 0x6c, 0x61,
-	0x6e, 0x65, 0x31, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6c, 0x61, 0x6e, 0x65, 0x31,
-	0x12, 0x14, 0x0a, 0x05, 0x6c, 0x61, 0x6e, 0x65, 0x32, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x05, 0x6c, 0x61, 0x6e, 0x65, 0x32, 0x12, 0x14, 0x0a, 0x05, 0x6c, 0x61, 0x6e, 0x65, 0x33, 0x18,
-	0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6c, 0x61, 0x6e, 0x65, 0x33, 0x12, 0x14, 0x0a, 0x05,
-	0x6c, 0x61, 0x6e, 0x65, 0x34, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6c, 0x61, 0x6e,
-	0x65, 0x34, 0x32, 0x70, 0x0a, 0x0b, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e,
+	0x07, 0x0a, 0x05, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x3a, 0x0a, 0x0a, 0x4d, 0x79, 0x50, 0x6f,
+	0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x18, 0x0a, 0x07, 0x6c, 0x6f, 0x62, 0x62, 0x79, 0x49,
+	0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6c, 0x6f, 0x62, 0x62, 0x79, 0x49, 0x44,
+	0x12, 0x12, 0x0a, 0x04, 0x6c, 0x61, 0x6e, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04,
+	0x6c, 0x61, 0x6e, 0x65, 0x22, 0x23, 0x0a, 0x07, 0x4d, 0x79, 0x4c, 0x6f, 0x62, 0x62, 0x79, 0x12,
+	0x18, 0x0a, 0x07, 0x6c, 0x6f, 0x62, 0x62, 0x79, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x07, 0x6c, 0x6f, 0x62, 0x62, 0x79, 0x49, 0x44, 0x22, 0x66, 0x0a, 0x0c, 0x50, 0x6f, 0x73,
+	0x69, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x14, 0x0a, 0x05, 0x6c, 0x61, 0x6e,
+	0x65, 0x31, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6c, 0x61, 0x6e, 0x65, 0x31, 0x12,
+	0x14, 0x0a, 0x05, 0x6c, 0x61, 0x6e, 0x65, 0x32, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05,
+	0x6c, 0x61, 0x6e, 0x65, 0x32, 0x12, 0x14, 0x0a, 0x05, 0x6c, 0x61, 0x6e, 0x65, 0x33, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6c, 0x61, 0x6e, 0x65, 0x33, 0x12, 0x14, 0x0a, 0x05, 0x6c,
+	0x61, 0x6e, 0x65, 0x34, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6c, 0x61, 0x6e, 0x65,
+	0x34, 0x32, 0xa2, 0x01, 0x0a, 0x0b, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e,
 	0x73, 0x12, 0x2c, 0x0a, 0x09, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x65, 0x64, 0x12, 0x0b,
 	0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x10, 0x2e, 0x63, 0x68,
 	0x61, 0x74, 0x2e, 0x4d, 0x79, 0x50, 0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x00, 0x12,
-	0x33, 0x0a, 0x09, 0x50, 0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x10, 0x2e, 0x63,
-	0x68, 0x61, 0x74, 0x2e, 0x4d, 0x79, 0x50, 0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x1a, 0x12,
+	0x31, 0x0a, 0x0e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f,
+	0x6e, 0x12, 0x10, 0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x4d, 0x79, 0x50, 0x6f, 0x73, 0x69, 0x74,
+	0x69, 0x6f, 0x6e, 0x1a, 0x0b, 0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79,
+	0x22, 0x00, 0x12, 0x32, 0x0a, 0x09, 0x50, 0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12,
+	0x0d, 0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x4d, 0x79, 0x4c, 0x6f, 0x62, 0x62, 0x79, 0x1a, 0x12,
 	0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x50, 0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x6e,
-	0x66, 0x6f, 0x22, 0x00, 0x42, 0x11, 0x5a, 0x0f, 0x63, 0x6d, 0x64, 0x2f, 0x63, 0x6f, 0x6e, 0x6e,
-	0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x66, 0x6f, 0x22, 0x00, 0x30, 0x01, 0x42, 0x11, 0x5a, 0x0f, 0x63, 0x6d, 0x64, 0x2f, 0x63, 0x6f,
+	0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x33,
 }
 
 var (
@@ -226,19 +280,22 @@ func file_proto_connections_proto_rawDescGZIP() []byte {
 	return file_proto_connections_proto_rawDescData
 }
 
-var file_proto_connections_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_proto_connections_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_proto_connections_proto_goTypes = []interface{}{
 	(*Empty)(nil),        // 0: chat.Empty
 	(*MyPosition)(nil),   // 1: chat.MyPosition
-	(*PositionInfo)(nil), // 2: chat.PositionInfo
+	(*MyLobby)(nil),      // 2: chat.MyLobby
+	(*PositionInfo)(nil), // 3: chat.PositionInfo
 }
 var file_proto_connections_proto_depIdxs = []int32{
 	0, // 0: chat.Connections.Connected:input_type -> chat.Empty
-	1, // 1: chat.Connections.Positions:input_type -> chat.MyPosition
-	1, // 2: chat.Connections.Connected:output_type -> chat.MyPosition
-	2, // 3: chat.Connections.Positions:output_type -> chat.PositionInfo
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
+	1, // 1: chat.Connections.UpdatePosition:input_type -> chat.MyPosition
+	2, // 2: chat.Connections.Positions:input_type -> chat.MyLobby
+	1, // 3: chat.Connections.Connected:output_type -> chat.MyPosition
+	0, // 4: chat.Connections.UpdatePosition:output_type -> chat.Empty
+	3, // 5: chat.Connections.Positions:output_type -> chat.PositionInfo
+	3, // [3:6] is the sub-list for method output_type
+	0, // [0:3] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -275,6 +332,18 @@ func file_proto_connections_proto_init() {
 			}
 		}
 		file_proto_connections_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*MyLobby); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_connections_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PositionInfo); i {
 			case 0:
 				return &v.state
@@ -293,7 +362,7 @@ func file_proto_connections_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_proto_connections_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -320,7 +389,8 @@ const _ = grpc.SupportPackageIsVersion6
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type ConnectionsClient interface {
 	Connected(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*MyPosition, error)
-	Positions(ctx context.Context, in *MyPosition, opts ...grpc.CallOption) (*PositionInfo, error)
+	UpdatePosition(ctx context.Context, in *MyPosition, opts ...grpc.CallOption) (*Empty, error)
+	Positions(ctx context.Context, in *MyLobby, opts ...grpc.CallOption) (Connections_PositionsClient, error)
 }
 
 type connectionsClient struct {
@@ -340,19 +410,52 @@ func (c *connectionsClient) Connected(ctx context.Context, in *Empty, opts ...gr
 	return out, nil
 }
 
-func (c *connectionsClient) Positions(ctx context.Context, in *MyPosition, opts ...grpc.CallOption) (*PositionInfo, error) {
-	out := new(PositionInfo)
-	err := c.cc.Invoke(ctx, "/chat.Connections/Positions", in, out, opts...)
+func (c *connectionsClient) UpdatePosition(ctx context.Context, in *MyPosition, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/chat.Connections/UpdatePosition", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
+func (c *connectionsClient) Positions(ctx context.Context, in *MyLobby, opts ...grpc.CallOption) (Connections_PositionsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Connections_serviceDesc.Streams[0], "/chat.Connections/Positions", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &connectionsPositionsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Connections_PositionsClient interface {
+	Recv() (*PositionInfo, error)
+	grpc.ClientStream
+}
+
+type connectionsPositionsClient struct {
+	grpc.ClientStream
+}
+
+func (x *connectionsPositionsClient) Recv() (*PositionInfo, error) {
+	m := new(PositionInfo)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ConnectionsServer is the server API for Connections service.
 type ConnectionsServer interface {
 	Connected(context.Context, *Empty) (*MyPosition, error)
-	Positions(context.Context, *MyPosition) (*PositionInfo, error)
+	UpdatePosition(context.Context, *MyPosition) (*Empty, error)
+	Positions(*MyLobby, Connections_PositionsServer) error
 }
 
 // UnimplementedConnectionsServer can be embedded to have forward compatible implementations.
@@ -362,8 +465,11 @@ type UnimplementedConnectionsServer struct {
 func (*UnimplementedConnectionsServer) Connected(context.Context, *Empty) (*MyPosition, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Connected not implemented")
 }
-func (*UnimplementedConnectionsServer) Positions(context.Context, *MyPosition) (*PositionInfo, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Positions not implemented")
+func (*UnimplementedConnectionsServer) UpdatePosition(context.Context, *MyPosition) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePosition not implemented")
+}
+func (*UnimplementedConnectionsServer) Positions(*MyLobby, Connections_PositionsServer) error {
+	return status.Errorf(codes.Unimplemented, "method Positions not implemented")
 }
 
 func RegisterConnectionsServer(s *grpc.Server, srv ConnectionsServer) {
@@ -388,22 +494,43 @@ func _Connections_Connected_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Connections_Positions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Connections_UpdatePosition_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MyPosition)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ConnectionsServer).Positions(ctx, in)
+		return srv.(ConnectionsServer).UpdatePosition(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/chat.Connections/Positions",
+		FullMethod: "/chat.Connections/UpdatePosition",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ConnectionsServer).Positions(ctx, req.(*MyPosition))
+		return srv.(ConnectionsServer).UpdatePosition(ctx, req.(*MyPosition))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _Connections_Positions_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(MyLobby)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ConnectionsServer).Positions(m, &connectionsPositionsServer{stream})
+}
+
+type Connections_PositionsServer interface {
+	Send(*PositionInfo) error
+	grpc.ServerStream
+}
+
+type connectionsPositionsServer struct {
+	grpc.ServerStream
+}
+
+func (x *connectionsPositionsServer) Send(m *PositionInfo) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 var _Connections_serviceDesc = grpc.ServiceDesc{
@@ -415,10 +542,16 @@ var _Connections_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Connections_Connected_Handler,
 		},
 		{
-			MethodName: "Positions",
-			Handler:    _Connections_Positions_Handler,
+			MethodName: "UpdatePosition",
+			Handler:    _Connections_UpdatePosition_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Positions",
+			Handler:       _Connections_Positions_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "proto/connections.proto",
 }
