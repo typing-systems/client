@@ -37,6 +37,7 @@ type model struct {
 
 	completed bool
 	chosen    bool
+	listening bool
 
 	input ti.Model
 	time  time.Time
@@ -80,6 +81,7 @@ func initModel() model {
 		myLobby:       reply.LobbyID,
 		myLane:        reply.Lane,
 		positionsChan: make(chan *connections.PositionInfo),
+		listening:     false,
 	}
 
 	return model
@@ -246,6 +248,7 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 
 	case positionMsg:
 		m.lanes = msg.ToIntArr()
+		return &m, waitForPositions(m.positionsChan)
 	}
 
 	return &m, nil
@@ -417,6 +420,10 @@ func (m model) View() string {
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.chosen {
 		if m.cursor == 0 {
+			if m.listening == false {
+				go m.listenForPositions()
+				m.listening = true
+			}
 			return UpdateOthers(msg, *m)
 		} else if m.cursor == 1 {
 			return UpdateYourself(msg, *m)
@@ -443,26 +450,22 @@ func (p positionMsg) ToIntArr() []int {
 func (m *model) listenForPositions() {
 	stream, err := m.c.Positions(context.Background(), &connections.MyLobby{LobbyID: m.myLobby})
 	if err != nil {
-		log.Printf("error with positions: %v", err)
+		log.Fatalf("error with positions: %v", err)
 	}
 	for {
-		// log.Println("stream recv")
 		value, err := stream.Recv()
 		if err == io.EOF {
 			log.Println("err ioEOF")
 		}
 		if err != nil {
-			log.Printf("error receiving from stream: %v", err)
+			log.Fatalf("error receiving from stream: %v", err)
 		}
 		m.positionsChan <- value
-		// m.positionsChan <- &connections.PositionInfo{Lane1: "2", Lane2: "4", Lane3: "0", Lane4: "10"}
-		time.Sleep(500 * time.Millisecond)
 	}
 }
 
 func waitForPositions(position chan *connections.PositionInfo) tea.Cmd {
 	return func() tea.Msg {
-		log.Println("position happened")
 		positionArr := make(positionMsg, 4)
 		positionArr[0] = (<-position).Lane1
 		positionArr[1] = (<-position).Lane2
@@ -483,8 +486,6 @@ func (m *model) Init() tea.Cmd {
 func main() {
 	m := initModel()
 	defer m.conn.Close()
-
-	go m.listenForPositions()
 
 	client := tea.NewProgram(&m, tea.WithAltScreen())
 	if err := client.Start(); err != nil {
