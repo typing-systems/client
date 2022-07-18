@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -242,28 +243,11 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
-	// stream, err := m.c.Positions(context.Background(), &connections.MyLobby{LobbyID: m.myLobby})
-	// if err != nil {
-	// 	log.Fatalf("error with positions: %v", err)
-	// }
-	// go func() {
-	// 	for {
-	// 		value, err := stream.Recv()
-	// 		if err == io.EOF {
-	// 			return
-	// 		}
-	// 		if err != nil {
-	// 			log.Fatalf("error receiving from stream: %v", err)
-	// 		}
-	// 		m.lanes[0], _ = strconv.Atoi(value.Lane1)
-	// 		m.lanes[1], _ = strconv.Atoi(value.Lane2)
-	// 		m.lanes[2], _ = strconv.Atoi(value.Lane3)
-	// 		m.lanes[3], _ = strconv.Atoi(value.Lane4)
-	// 	}
-	// }()
+
 	case positionMsg:
-		m.lanes = msg.String()
+		m.lanes = msg.ToIntArr()
 	}
+
 	return &m, nil
 }
 
@@ -446,26 +430,40 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 type positionMsg []string
 
+func (p positionMsg) ToIntArr() []int {
+	intArr := make([]int, 4)
+	intArr[0], _ = strconv.Atoi(p[0])
+	intArr[1], _ = strconv.Atoi(p[1])
+	intArr[2], _ = strconv.Atoi(p[2])
+	intArr[3], _ = strconv.Atoi(p[3])
+
+	return intArr
+}
+
 func (m *model) listenForPositions() {
 	stream, err := m.c.Positions(context.Background(), &connections.MyLobby{LobbyID: m.myLobby})
 	if err != nil {
-		log.Fatalf("error with positions: %v", err)
+		log.Printf("error with positions: %v", err)
 	}
 	for {
+		// log.Println("stream recv")
 		value, err := stream.Recv()
 		if err == io.EOF {
-			return
+			log.Println("err ioEOF")
 		}
 		if err != nil {
-			log.Fatalf("error receiving from stream: %v", err)
+			log.Printf("error receiving from stream: %v", err)
 		}
 		m.positionsChan <- value
+		// m.positionsChan <- &connections.PositionInfo{Lane1: "2", Lane2: "4", Lane3: "0", Lane4: "10"}
+		time.Sleep(500 * time.Millisecond)
 	}
 }
 
 func waitForPositions(position chan *connections.PositionInfo) tea.Cmd {
 	return func() tea.Msg {
-		positionArr := make(positionMsg, 0)
+		log.Println("position happened")
+		positionArr := make(positionMsg, 4)
 		positionArr[0] = (<-position).Lane1
 		positionArr[1] = (<-position).Lane2
 		positionArr[2] = (<-position).Lane3
@@ -476,7 +474,9 @@ func waitForPositions(position chan *connections.PositionInfo) tea.Cmd {
 
 // Setup Functions
 func (m *model) Init() tea.Cmd {
-	return nil
+	return tea.Batch(
+		waitForPositions(m.positionsChan),
+	)
 }
 
 // Main function
