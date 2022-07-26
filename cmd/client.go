@@ -20,9 +20,12 @@ import (
 )
 
 var (
-	cpm      float64
-	wpm      float64
-	accuracy float64
+	cpm        float64
+	wpm        float64
+	accuracy   float64
+	wrong      = utility.ForegroundColour("#b91c1c")
+	primary    = utility.ForegroundColour("#525252")
+	menuColors = []string{"#e879f9", "#d946ef", "#c026d3", "#a21caf", "#86198f", "#701a75"}
 )
 
 type model struct {
@@ -68,7 +71,7 @@ func initModel() model {
 	input.SetCursorMode(2)
 
 	model := model{
-		options:      []string{"Race others", "Race yourself"},
+		options:      []string{"race others", "race yourself", "leaderboards", "stats", "options", "something"},
 		input:        input,
 		userSentence: "",
 		completed:    false,
@@ -88,22 +91,27 @@ func initModel() model {
 func ViewChoice(m model) string {
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
 
-	var leftHalf = utility.HalfGen(1, physicalWidth, physicalHeight, "#344e41")
-	var rightHalf = leftHalf.Copy().Background(lg.Color("#000000")).PaddingTop((physicalHeight - 4) / 2)
+	var leftHalf = utility.HalfGen(1, physicalWidth, physicalHeight, "#f5d0fe").Foreground(lg.Color("#262626"))
+	var rightHalf = leftHalf.Copy().Background(lg.Color("#404040")).PaddingTop((physicalHeight - 8) / 2).PaddingLeft((physicalWidth - 54) / 4).UnsetAlign()
 
-	left := "TYPING.SYSTEMS"
+	left := "typing.systems"
+	left = lg.JoinVertical(0, left, lg.NewStyle().Italic(true).Render("  タイピング.システム"))
+
 	right := ""
 
+	menuStyle := lg.NewStyle().Italic(true).Width(17).Align(lg.Center)
+
 	for i, option := range m.options {
-		cursor := " "
 		if m.cursor == i {
-			cursor = ">"
+			right += fmt.Sprintf("%s\n", menuStyle.Background(lg.Color("#f5f5f5")).Foreground(lg.Color("#262626")).MarginLeft(i*2).Render(option))
+			continue
 		}
 
-		right += (fmt.Sprintf("%s [%s]\n", cursor, option))
+		// right += (menuStyle.Background(lg.Color(menuColors[i])).Render(fmt.Sprintf("%s %s\n", cursor, option)))
+		right += fmt.Sprintf("%s\n", menuStyle.Background(lg.Color(menuColors[i])).MarginLeft(i*2).Foreground(lg.Color("#f5f5f5")).Render(option))
 	}
 
-	right += "\nPress ctrl+q to quit."
+	// right += "\n      Press ctrl+q to quit."
 
 	return lg.JoinHorizontal(lg.Center, leftHalf.Render(left), rightHalf.Render(right))
 }
