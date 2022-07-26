@@ -164,9 +164,6 @@ func ViewOthers(m model) string {
 
 	bottomHalf := topHalf.Copy().UnsetBackground()
 
-	var wrong = utility.ForegroundColour("#A7171A")
-	var primary = utility.ForegroundColour("#525252")
-
 	display := ""
 	for i, char := range m.userSentence {
 		if char == rune(m.sentence[i]) {
@@ -174,7 +171,7 @@ func ViewOthers(m model) string {
 		} else if string(char) == " " {
 			display += wrong.Render("_")
 		} else {
-			display += wrong.Render(string(char))
+			display += wrong.Render(string(m.sentence[i]))
 		}
 	}
 
@@ -269,9 +266,6 @@ func ViewYourself(m model) string {
 		PaddingTop((physicalHeight - lg.Height(m.sentence)) / 2).
 		PaddingLeft((physicalWidth - lg.Width(m.sentence)) / 2)
 
-	var wrong = utility.ForegroundColour("#A7171A")
-	var primary = utility.ForegroundColour("#525252")
-
 	display := ""
 	for i, char := range m.userSentence {
 		if char == rune(m.sentence[i]) {
@@ -279,7 +273,7 @@ func ViewYourself(m model) string {
 		} else if string(char) == " " {
 			display += wrong.Render("_")
 		} else {
-			display += wrong.Render(string(char))
+			display += wrong.Render(string(m.sentence[i]))
 		}
 	}
 
