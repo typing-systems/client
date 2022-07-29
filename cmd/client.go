@@ -91,8 +91,8 @@ func initModel() model {
 func ViewChoice(m model) string {
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
 
-	var leftHalf = utility.HalfGen(1, physicalWidth, physicalHeight, "#f5d0fe").Foreground(lg.Color("#262626"))
-	var rightHalf = leftHalf.Copy().Background(lg.Color("#404040")).PaddingTop((physicalHeight - 8) / 2).PaddingLeft((physicalWidth - 54) / 4).UnsetAlign()
+	leftHalf := utility.HalfGen(2, physicalWidth, physicalHeight, "#f5d0fe").Foreground(lg.Color("#262626"))
+	rightHalf := utility.HalfGen(6, physicalWidth, physicalHeight, "#404040").UnsetAlign().PaddingLeft((physicalWidth - 54) / 4)
 
 	left := "typing.systems"
 	left = lg.JoinVertical(0, left, lg.NewStyle().Italic(true).Render("  タイピング.システム"))
