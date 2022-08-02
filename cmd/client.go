@@ -37,8 +37,9 @@ type model struct {
 	strokes int
 	cursor  int
 
-	completed bool
-	chosen    bool
+	completed   bool
+	chosen      bool
+	isConnected bool
 
 	input ti.Model
 	time  time.Time
@@ -52,17 +53,17 @@ type model struct {
 }
 
 func initModel() model {
-	conn, err := grpc.Dial(":9000", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Fatalf("did not connect: %s", err)
-	}
+	// conn, err := grpc.Dial(":9000", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	// if err != nil {
+	// 	log.Fatalf("did not connect: %s", err)
+	// }
 
-	connection := connections.NewConnectionsClient(conn)
+	// connection := connections.NewConnectionsClient(conn)
 
-	reply, err := connection.Connected(context.Background(), &connections.Empty{})
-	if err != nil {
-		log.Fatalf("Connected failed: %s", err)
-	}
+	// reply, err := connection.Connected(context.Background(), &connections.Empty{})
+	// if err != nil {
+	// 	log.Fatalf("Connected failed: %s", err)
+	// }
 
 	input := ti.New()
 
@@ -76,10 +77,7 @@ func initModel() model {
 		userSentence: "",
 		completed:    false,
 		lanes:        []int{1, 2, 3, 4},
-		c:            connection,
-		conn:         conn,
-		myLobby:      reply.ID,
-		myLane:       reply.Lane,
+		isConnected:  false,
 	}
 
 	return model
@@ -417,6 +415,25 @@ func (m model) View() string {
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.chosen {
 		if m.cursor == 0 {
+			if !m.isConnected {
+				conn, err := grpc.Dial(":9000", grpc.WithTransportCredentials(insecure.NewCredentials()))
+				if err != nil {
+					log.Fatalf("did not connect: %s", err)
+				}
+
+				connection := connections.NewConnectionsClient(conn)
+
+				reply, err := connection.Connected(context.Background(), &connections.Empty{})
+				if err != nil {
+					log.Fatalf("Connected failed: %s", err)
+				}
+				m.myLobby = reply.ID
+				m.myLane = reply.Lane
+
+				m.c = connection
+				m.conn = conn
+				m.isConnected = true
+			}
 			return UpdateOthers(msg, *m)
 		} else if m.cursor == 1 {
 			return UpdateYourself(msg, *m)
