@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -46,10 +45,11 @@ type model struct {
 
 	options        []string
 	correctStrokes float64
-	lanes          []int
+	lanes          []int32
 
-	c    connections.ConnectionsClient
-	conn *grpc.ClientConn
+	c           connections.ConnectionsClient
+	conn        *grpc.ClientConn
+	lanesStream connections.Connections_PositionsClient
 }
 
 func initModel() model {
@@ -76,7 +76,7 @@ func initModel() model {
 		input:        input,
 		userSentence: "",
 		completed:    false,
-		lanes:        []int{1, 2, 3, 4},
+		lanes:        []int32{1, 2, 3, 4},
 		isConnected:  false,
 	}
 
@@ -155,10 +155,10 @@ func ViewOthers(m model) string {
 		Background(lg.Color("#525252")).
 		PaddingTop((physicalHeight / 4) - lg.Height(m.sentence))
 
-	lane1 := strings.Repeat("=", m.lanes[0])
-	lane2 := strings.Repeat("=", m.lanes[1])
-	lane3 := strings.Repeat("=", m.lanes[2])
-	lane4 := strings.Repeat("=", m.lanes[3])
+	lane1 := strings.Repeat("=", int(m.lanes[0]))
+	lane2 := strings.Repeat("=", int(m.lanes[1]))
+	lane3 := strings.Repeat("=", int(m.lanes[2]))
+	lane4 := strings.Repeat("=", int(m.lanes[3]))
 
 	bottomHalf := topHalf.Copy().UnsetBackground()
 
@@ -237,14 +237,21 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			if msg.Runes[0] == rune(m.sentence[len(m.userSentence)-1]) {
 				m.correctStrokes++
 
-				reply, err := m.c.Positions(context.Background(), &connections.MyPosition{ID: m.myLobby, Lane: m.myLane})
+				m.c.UpdatePosition(context.Background(), &connections.MyPosition{LobbyID: m.myLobby, Lane: m.myLane})
+				reply, err := m.lanesStream.Recv()
 				if err != nil {
-					log.Fatal("Error calling Positions", err)
+					log.Fatalf("error receiving from stream: %v", err)
 				}
-				m.lanes[0], _ = strconv.Atoi(reply.Lane1)
-				m.lanes[1], _ = strconv.Atoi(reply.Lane2)
-				m.lanes[2], _ = strconv.Atoi(reply.Lane3)
-				m.lanes[3], _ = strconv.Atoi(reply.Lane4)
+				switch reply.Lane {
+				case "lane1":
+					m.lanes[0] = reply.GetPoints()
+				case "lane2":
+					m.lanes[1] = reply.GetPoints()
+				case "lane3":
+					m.lanes[2] = reply.GetPoints()
+				case "lane4":
+					m.lanes[3] = reply.GetPoints()
+				}
 			}
 		}
 	}
@@ -427,7 +434,14 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if err != nil {
 					log.Fatalf("Connected failed: %s", err)
 				}
-				m.myLobby = reply.ID
+
+				lanesStream, err := connection.Positions(context.Background(), &connections.MyLobby{LobbyID: reply.LobbyID})
+				if err != nil {
+					log.Fatal("Error calling Positions", err)
+				}
+				m.lanesStream = lanesStream
+
+				m.myLobby = reply.LobbyID
 				m.myLane = reply.Lane
 
 				m.c = connection
