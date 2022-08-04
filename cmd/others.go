@@ -125,6 +125,7 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			return &m, waitForLanes(m.data)
 		}
 	case tea.KeyMsg:
+		utility.Log("keyMsg received")
 		if m.time.IsZero() {
 			m.time = time.Now()
 		}
@@ -179,7 +180,7 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			if msg.Runes[0] == rune(m.sentence[len(m.userSentence)-1]) {
 				m.correctStrokes++
 
-				m.c.UpdatePosition(context.Background(), &connections.MyPosition{LobbyID: m.myLobby, Lane: m.myLane})
+				go updatePosition(m)
 			}
 		}
 		// default:
@@ -189,4 +190,10 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	}
 
 	return &m, nil
+}
+
+func updatePosition(m model) {
+	utility.Log("sending position to server")
+	m.c.UpdatePosition(context.Background(), &connections.MyPosition{LobbyID: m.myLobby, Lane: m.myLane})
+	utility.Log("position sent to server")
 }
