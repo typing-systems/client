@@ -99,6 +99,7 @@ func (m *model) View() string {
 				m.c = connection
 				m.conn = conn
 				m.isConnected = true
+				m.data <- dataMsg{Lane: "lane1", Points: 90}
 			}
 			return ViewOthers(*m)
 		} else if m.cursor == 1 {
@@ -130,7 +131,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // Setup Functions
 func (m *model) Init() tea.Cmd {
 	return tea.Batch(
-		listenForLanes(m),
+		// listenForLanes(m),
 		waitForLanes(m.data),
 	)
 }

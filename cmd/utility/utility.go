@@ -88,3 +88,15 @@ func CalculateStats(correctStrokes float64, strokes int, startTime time.Time) (f
 
 	return cpm, wpm, accuracy
 }
+
+func Log(text string) {
+	f, err := os.OpenFile("./filename", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		panic(err)
+	}
+
+	if _, err = f.WriteString(text + "\n"); err != nil {
+		panic(err)
+	}
+	f.Close()
+}

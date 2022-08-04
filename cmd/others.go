@@ -4,12 +4,14 @@ import (
 	"context"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	lg "github.com/charmbracelet/lipgloss"
 	"github.com/typing-systems/typing/cmd/connections"
+	"github.com/typing-systems/typing/cmd/utility"
 	"golang.org/x/term"
 )
 
@@ -20,25 +22,62 @@ type dataMsg struct {
 
 func listenForLanes(m *model) tea.Cmd {
 	return func() tea.Msg {
+		utility.Log("inside listenForLanes func")
 		for {
-			if (<-m.data).Points == -1 {
-
-			} else {
+			utility.Log("inside for listenForLanes")
+			m.data <- dataMsg{Lane: "lane3", Points: 50}
+			if data, ok := <-m.data; ok {
+				utility.Log("inside if in listenForLanes")
 				reply, err := m.lanesStream.Recv()
 				if err != nil {
 					log.Fatalf("error receiving from stream: %v", err)
 				}
 				m.data <- dataMsg{Lane: reply.Lane, Points: int(reply.Points)}
+			} else {
+				utility.Log("inside for in listenForLanes: data: " + data.Lane + " ok: " + strconv.FormatBool(ok))
 			}
 		}
 	}
 }
 
+// func listenForLanes(m *model) tea.Cmd {
+// 	return func() tea.Msg {
+// 		utility.Log("inside listenForLanes func")
+// 		for {
+// 			utility.Log("inside for listenForLanes")
+// 			reply, err := m.lanesStream.Recv()
+// 			if err != nil {
+// 				log.Fatalf("error receiving from stream: %v", err)
+// 			}
+// 			m.data <- dataMsg{Lane: reply.Lane, Points: int(reply.Points)}
+// 		}
+// 	}
+// }
+
 func waitForLanes(data chan dataMsg) tea.Cmd {
 	return func() tea.Msg {
+		utility.Log("waitForLanes")
 		return dataMsg(<-data)
 	}
 }
+
+// func listenForLanes(data chan dataMsg) tea.Cmd {
+// 	fmt.Println("listenForLanes ran")
+// 	return func() tea.Msg {
+// 		for {
+// 			time.Sleep(time.Second / 30)
+// 			data <- dataMsg{Lane: "lane1", Points: 80}
+// 		}
+// 	}
+// }
+
+// func waitForLanes(data chan dataMsg) tea.Cmd {
+// 	fmt.Println("waitForLanes ran")
+// 	return func() tea.Msg {
+// 		fmt.Println("dataMsg sent")
+// 		return dataMsg(<-data)
+// 	}
+// }
 
 func ViewOthers(m model) string {
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
@@ -77,6 +116,8 @@ func ViewOthers(m model) string {
 func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case dataMsg:
+		utility.Log("dataMsg received")
+
 		switch msg.Lane {
 		case "lane1":
 			m.lanes[0] = msg.Points
@@ -149,7 +190,11 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				m.c.UpdatePosition(context.Background(), &connections.MyPosition{LobbyID: m.myLobby, Lane: m.myLane})
 			}
 		}
+		// default:
+		// 	var cmd tea.Cmd
+		// 	m.spinner, cmd = m.spinner.Update(msg)
+		// 	return &m, cmd
 	}
 
-	return &m, nil
+	return &m, listenForLanes(&m)
 }
