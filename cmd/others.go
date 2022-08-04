@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,23 +19,16 @@ type dataMsg struct {
 	Points int
 }
 
-func listenForLanes(m *model) tea.Cmd {
-	return func() tea.Msg {
-		utility.Log("inside listenForLanes func")
-		for {
-			utility.Log("inside for listenForLanes")
-			m.data <- dataMsg{Lane: "lane3", Points: 50}
-			if data, ok := <-m.data; ok {
-				utility.Log("inside if in listenForLanes")
-				reply, err := m.lanesStream.Recv()
-				if err != nil {
-					log.Fatalf("error receiving from stream: %v", err)
-				}
-				m.data <- dataMsg{Lane: reply.Lane, Points: int(reply.Points)}
-			} else {
-				utility.Log("inside for in listenForLanes: data: " + data.Lane + " ok: " + strconv.FormatBool(ok))
-			}
+func listenForLanes(m *model) {
+	utility.Log("listenForLanes called")
+	for {
+		utility.Log("waiting for reply")
+		reply, err := m.lanesStream.Recv()
+		utility.Log("received a reply")
+		if err != nil {
+			log.Fatalf("error receiving from stream: %v", err)
 		}
+		m.data <- dataMsg{Lane: reply.Lane, Points: int(reply.Points)}
 	}
 }
 
@@ -56,7 +48,7 @@ func listenForLanes(m *model) tea.Cmd {
 
 func waitForLanes(data chan dataMsg) tea.Cmd {
 	return func() tea.Msg {
-		utility.Log("waitForLanes")
+		utility.Log("waitForLanes called")
 		return dataMsg(<-data)
 	}
 }
@@ -196,5 +188,5 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		// 	return &m, cmd
 	}
 
-	return &m, listenForLanes(&m)
+	return &m, nil
 }
