@@ -90,7 +90,7 @@ func CalculateStats(correctStrokes float64, strokes int, startTime time.Time) (f
 }
 
 func Log(text string) {
-	f, err := os.OpenFile("./filename", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	f, err := os.OpenFile("./client.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		panic(err)
 	}

@@ -22,3 +22,5 @@
 
 # ...even if they are in subdirectories
 !*/
+
+*.log
