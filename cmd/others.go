@@ -32,20 +32,6 @@ func listenForLanes(m *model) {
 	}
 }
 
-// func listenForLanes(m *model) tea.Cmd {
-// 	return func() tea.Msg {
-// 		utility.Log("inside listenForLanes func")
-// 		for {
-// 			utility.Log("inside for listenForLanes")
-// 			reply, err := m.lanesStream.Recv()
-// 			if err != nil {
-// 				log.Fatalf("error receiving from stream: %v", err)
-// 			}
-// 			m.data <- dataMsg{Lane: reply.Lane, Points: int(reply.Points)}
-// 		}
-// 	}
-// }
-
 func waitForLanes(data chan dataMsg) tea.Cmd {
 	return func() tea.Msg {
 		utility.Log("waitForLanes called")
@@ -53,23 +39,11 @@ func waitForLanes(data chan dataMsg) tea.Cmd {
 	}
 }
 
-// func listenForLanes(data chan dataMsg) tea.Cmd {
-// 	fmt.Println("listenForLanes ran")
-// 	return func() tea.Msg {
-// 		for {
-// 			time.Sleep(time.Second / 30)
-// 			data <- dataMsg{Lane: "lane1", Points: 80}
-// 		}
-// 	}
-// }
-
-// func waitForLanes(data chan dataMsg) tea.Cmd {
-// 	fmt.Println("waitForLanes ran")
-// 	return func() tea.Msg {
-// 		fmt.Println("dataMsg sent")
-// 		return dataMsg(<-data)
-// 	}
-// }
+func updatePosition(m model) {
+	utility.Log("sending position to server")
+	m.c.UpdatePosition(context.Background(), &connections.MyPosition{LobbyID: m.myLobby, Lane: m.myLane})
+	utility.Log("position sent to server")
+}
 
 func ViewOthers(m model) string {
 	physicalWidth, physicalHeight, _ := term.GetSize(int(os.Stdout.Fd()))
@@ -183,17 +157,7 @@ func UpdateOthers(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				go updatePosition(m)
 			}
 		}
-		// default:
-		// 	var cmd tea.Cmd
-		// 	m.spinner, cmd = m.spinner.Update(msg)
-		// 	return &m, cmd
 	}
 
 	return &m, nil
-}
-
-func updatePosition(m model) {
-	utility.Log("sending position to server")
-	m.c.UpdatePosition(context.Background(), &connections.MyPosition{LobbyID: m.myLobby, Lane: m.myLane})
-	utility.Log("position sent to server")
 }
