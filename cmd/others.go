@@ -35,13 +35,17 @@ func listenForLanes(m *model) {
 func waitForLanes(data chan dataMsg) tea.Cmd {
 	return func() tea.Msg {
 		utility.Log("waitForLanes called")
-		return dataMsg(<-data)
+		d := <-data
+		return dataMsg{Lane: d.Lane, Points: d.Points}
 	}
 }
 
 func updatePosition(m model) {
 	utility.Log("sending position to server")
-	m.c.UpdatePosition(context.Background(), &connections.MyPosition{LobbyID: m.myLobby, Lane: m.myLane})
+	_, err := m.c.UpdatePosition(context.Background(), &connections.MyPosition{LobbyID: m.myLobby, Lane: m.myLane})
+	if err != nil {
+		log.Fatalf("error sending position to server: %v", err)
+	}
 	utility.Log("position sent to server")
 }
 

@@ -116,7 +116,6 @@ func (m *model) View() string {
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.chosen {
 		if m.cursor == 0 {
-
 			return UpdateOthers(msg, *m)
 		} else if m.cursor == 1 {
 			return UpdateYourself(msg, *m)

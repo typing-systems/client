@@ -71,7 +71,7 @@ func ForegroundColour(hex string) lg.Style {
 	return lg.NewStyle().Foreground(lg.Color(hex))
 }
 
-//  Serves as a utility class for syntactic sugar, returns a lip gloss style.
+// Serves as a utility class for syntactic sugar, returns a lip gloss style.
 func HalfGen(numVertLines int, physicalWidth int, physicalHeight int, hex string) lg.Style {
 	return lg.NewStyle().
 		Width(physicalWidth / 2).
@@ -98,5 +98,7 @@ func Log(text string) {
 	if _, err = f.WriteString(time.Now().Format("01-02-2006 15:04:05.000000		") + text + "\n"); err != nil {
 		panic(err)
 	}
-	f.Close()
+	if err := f.Close(); err != nil {
+		log.Fatalf("error closing file: %v", err)
+	}
 }

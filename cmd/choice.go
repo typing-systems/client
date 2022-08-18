@@ -64,11 +64,6 @@ func UpdateChoice(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			m.strokes = 0
 			m.completed = false
 		}
-		// default:
-		// 	var cmd tea.Cmd
-		// 	m.spinner, cmd = m.spinner.Update(msg)
-		// 	return &m, cmd
-
 	}
 
 	return &m, waitForLanes(m.data)
