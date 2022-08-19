@@ -3,6 +3,9 @@ package utility
 import (
 	"bufio"
 	"crypto/rand"
+	"encoding/json"
+	"errors"
+	"io/ioutil"
 	"log"
 	"math/big"
 	"os"
@@ -11,6 +14,12 @@ import (
 
 	lg "github.com/charmbracelet/lipgloss"
 )
+
+type cfgStruct struct {
+	Debug bool
+}
+
+var Config cfgStruct
 
 // Generates a random word in constant memory and O(n) time.
 func getRandomWord() string {
@@ -90,15 +99,59 @@ func CalculateStats(correctStrokes float64, strokes int, startTime time.Time) (f
 }
 
 func Log(text string) {
-	f, err := os.OpenFile("./client.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-	if err != nil {
-		panic(err)
+	if Config.Debug {
+		f, err := os.OpenFile("./client.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+		if err != nil {
+			panic(err)
+		}
+
+		if _, err = f.WriteString(time.Now().Format("01-02-2006 15:04:05.000000		") + text + "\n"); err != nil {
+			panic(err)
+		}
+		if err := f.Close(); err != nil {
+			log.Fatalf("error closing file: %v", err)
+		}
+	}
+}
+
+func LoadConfig() {
+	if _, err := os.Stat("config.json"); errors.Is(err, os.ErrNotExist) {
+		// path/to/whatever does not exist
+		Config = genConfig()
+	} else if err != nil {
+		log.Fatalf("error detecting if config file exists: %v", err)
+	} else {
+		f, err := os.Open("config.json")
+		defer f.Close()
+		if err != nil {
+			log.Fatalf("error opening config file: %v", err)
+		}
+		decoder := json.NewDecoder(f)
+		cfg := cfgStruct{}
+		err = decoder.Decode(&cfg)
+		if err != nil {
+			log.Fatalf("error decoding json from config file: %v", err)
+		}
+		Config = cfg
+	}
+}
+
+func genConfig() cfgStruct {
+	// default configuration
+	cfg := cfgStruct{
+		Debug: false,
 	}
 
-	if _, err = f.WriteString(time.Now().Format("01-02-2006 15:04:05.000000		") + text + "\n"); err != nil {
-		panic(err)
+	jsonCfg, err := json.MarshalIndent(cfg, "", "	")
+	if err != nil {
+		log.Fatalf("error generating config file json: %v", err)
 	}
-	if err := f.Close(); err != nil {
-		log.Fatalf("error closing file: %v", err)
+
+	// 0644 file perm means readable by all the user groups, but writable by the user only
+	err = ioutil.WriteFile("config.json", jsonCfg, 0644)
+	if err != nil {
+		log.Fatalf("error writing config file: %v", err)
 	}
+
+	return cfg
 }

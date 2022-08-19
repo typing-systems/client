@@ -136,6 +136,8 @@ func (m *model) Init() tea.Cmd {
 
 // Main function
 func main() {
+	utility.LoadConfig()
+
 	model := initModel()
 	defer model.conn.Close()
 
