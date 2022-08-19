@@ -125,7 +125,6 @@ func LoadConfig() {
 		if err != nil {
 			log.Fatalf("error opening config file: %v", err)
 		}
-		defer f.Close()
 		decoder := json.NewDecoder(f)
 		cfg := cfgStruct{}
 		err = decoder.Decode(&cfg)
@@ -133,6 +132,9 @@ func LoadConfig() {
 			log.Fatalf("error decoding json from config file: %v", err)
 		}
 		Config = cfg
+		if err := f.Close(); err != nil {
+			log.Fatalf("error closing config file: %v", err)
+		}
 	}
 }
 
