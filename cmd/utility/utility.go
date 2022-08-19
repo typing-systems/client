@@ -122,10 +122,10 @@ func LoadConfig() {
 		log.Fatalf("error detecting if config file exists: %v", err)
 	} else {
 		f, err := os.Open("config.json")
-		defer f.Close()
 		if err != nil {
 			log.Fatalf("error opening config file: %v", err)
 		}
+		defer f.Close()
 		decoder := json.NewDecoder(f)
 		cfg := cfgStruct{}
 		err = decoder.Decode(&cfg)
@@ -147,8 +147,8 @@ func genConfig() cfgStruct {
 		log.Fatalf("error generating config file json: %v", err)
 	}
 
-	// 0644 file perm means readable by all the user groups, but writable by the user only
-	err = ioutil.WriteFile("config.json", jsonCfg, 0644)
+	// 0600 file perm means read/write by owner only
+	err = ioutil.WriteFile("config.json", jsonCfg, 0600)
 	if err != nil {
 		log.Fatalf("error writing config file: %v", err)
 	}
