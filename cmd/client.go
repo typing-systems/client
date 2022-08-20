@@ -30,8 +30,9 @@ type model struct {
 	myLobby      string
 	myLane       string
 
-	strokes int
-	cursor  int
+	strokes        int
+	cursor         int
+	settingsCursor int
 
 	completed   bool
 	chosen      bool
@@ -58,7 +59,7 @@ func initModel() model {
 	input.SetCursorMode(2)
 
 	model := model{
-		options:      []string{"race others", "race yourself", "leaderboards", "stats", "options", "something"},
+		options:      []string{"race others", "race yourself", "leaderboards", "stats", "settings", "something"},
 		input:        input,
 		userSentence: "",
 		completed:    false,
@@ -104,6 +105,8 @@ func (m *model) View() string {
 			return ViewOthers(*m)
 		} else if m.cursor == 1 {
 			return ViewYourself(*m)
+		} else if m.cursor == 4 {
+			return ViewSettings(*m)
 		}
 	} else if m.completed {
 		return ViewResults(*m)
@@ -119,6 +122,8 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return UpdateOthers(msg, *m)
 		} else if m.cursor == 1 {
 			return UpdateYourself(msg, *m)
+		} else if m.cursor == 4 {
+			return UpdateSettings(msg, *m)
 		}
 	} else if m.completed {
 		return UpdateResults(msg, *m)

@@ -10,7 +10,10 @@ import (
 	"time"
 
 	lg "github.com/charmbracelet/lipgloss"
+	"github.com/typing-systems/typing/cmd/settings"
 )
+
+var Settings = make(map[string]bool)
 
 // Generates a random word in constant memory and O(n) time.
 func getRandomWord() string {
@@ -90,15 +93,17 @@ func CalculateStats(correctStrokes float64, strokes int, startTime time.Time) (f
 }
 
 func Log(text string) {
-	f, err := os.OpenFile("./client.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-	if err != nil {
-		panic(err)
-	}
+	if settings.Values.Logging {
+		f, err := os.OpenFile("./client.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+		if err != nil {
+			panic(err)
+		}
 
-	if _, err = f.WriteString(time.Now().Format("01-02-2006 15:04:05.000000		") + text + "\n"); err != nil {
-		panic(err)
-	}
-	if err := f.Close(); err != nil {
-		log.Fatalf("error closing file: %v", err)
+		if _, err = f.WriteString(time.Now().Format("01-02-2006 15:04:05.000000		") + text + "\n"); err != nil {
+			panic(err)
+		}
+		if err := f.Close(); err != nil {
+			log.Fatalf("error closing file: %v", err)
+		}
 	}
 }
