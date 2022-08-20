@@ -141,7 +141,6 @@ func (m *model) Init() tea.Cmd {
 
 // Main function
 func main() {
-	DefaultSettings()
 	model := initModel()
 	defer model.conn.Close()
 

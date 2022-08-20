@@ -10,6 +10,7 @@ import (
 	"time"
 
 	lg "github.com/charmbracelet/lipgloss"
+	"github.com/typing-systems/typing/cmd/settings"
 )
 
 var Settings = make(map[string]bool)
@@ -92,7 +93,7 @@ func CalculateStats(correctStrokes float64, strokes int, startTime time.Time) (f
 }
 
 func Log(text string) {
-	if Settings["logging"] {
+	if settings.Values.Logging {
 		f, err := os.OpenFile("./client.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 		if err != nil {
 			panic(err)

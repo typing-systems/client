@@ -2,31 +2,26 @@ package main
 
 import (
 	"fmt"
+	"reflect"
 
 	tea "github.com/charmbracelet/bubbletea"
 	lg "github.com/charmbracelet/lipgloss"
+	"github.com/typing-systems/typing/cmd/settings"
 	"github.com/typing-systems/typing/cmd/utility"
 )
-
-func DefaultSettings() {
-	utility.Settings["logging"] = false
-	utility.Settings["setting2"] = true
-	utility.Settings["setting3"] = false
-}
 
 func ViewSettings(m model) string {
 	optionStyle := lg.NewStyle().Italic(true).Width(17).Align(lg.Center).Background(lg.Color("#ecfccb"))
 	optionStyleOn := lg.NewStyle().Italic(true).Width(17).Align(lg.Center).Background(lg.Color("#84cc16"))
 
-	settings := []string{"logging", "setting2", "setting3"}
-
+	v := reflect.ValueOf(settings.Values)
 	menu := ""
 	var option string
-	for i, isToggled := range settings {
-		if utility.Settings[isToggled] {
-			option = optionStyleOn.Render(settings[i])
+	for i := 0; i < v.NumField(); i++ {
+		if v.Field(i).Bool() {
+			option = optionStyleOn.Render(v.Type().Field(i).Name)
 		} else {
-			option = optionStyle.Render(settings[i])
+			option = optionStyle.Render(v.Type().Field(i).Name)
 		}
 		if m.settingsCursor == i {
 			menu += fmt.Sprintf("> %s\n", option)
@@ -60,14 +55,13 @@ func UpdateSettings(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		case tea.KeyEnter, tea.KeySpace:
 			switch m.settingsCursor {
 			case 0:
-				// logging
-				utility.Settings["logging"] = !utility.Settings["logging"]
+				settings.Values.Logging = !settings.Values.Logging
 				utility.Log("toggling logging")
 			case 1:
-				utility.Settings["setting2"] = !utility.Settings["setting2"]
+				settings.Values.Setting2 = !settings.Values.Setting2
 				utility.Log("toggling setting 2")
 			case 2:
-				utility.Settings["setting3"] = !utility.Settings["setting3"]
+				settings.Values.Setting3 = !settings.Values.Setting3
 				utility.Log("toggling setting 3")
 			}
 		}
